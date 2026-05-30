@@ -7,22 +7,26 @@ import ConfirmDialog from '../../components/common/ConfirmDialog';
 
 const columns = [
   { field: 'id', headerName: 'ID' },
-  { field: 'name', headerName: 'Nombre' },
-  // añade más según tu modelo
+  { field: 'nombreCompleto', headerName: 'Nombre' },
+  { field: 'username', headerName: 'Username' },
+  { field: 'codigo_estudiante', headerName: 'Código' },
+  { field: 'estado', headerName: 'Estado' },
 ];
 
 const StudentsList = () => {
   const navigate = useNavigate();
-  const { data, isLoading, deleteStudents } = useStudents();
+  const { data, isLoading, deleteStudent } = useStudents();
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
+
+  const students = data?.data || data || [];
 
   const handleDelete = (id) => {
     setSelectedId(id);
     setOpenDialog(true);
   };
   const confirmDelete = async () => {
-    await deleteStudents.mutateAsync(selectedId);
+    await deleteStudent.mutateAsync(selectedId);
     setOpenDialog(false);
   };
 
@@ -31,9 +35,22 @@ const StudentsList = () => {
   return (
     <Container>
       <Typography variant="h4" gutterBottom>Estudiantes</Typography>
-      <Button variant="contained" onClick={() => navigate('new')}>Crear Estudiante</Button>
-      <DataTable columns={columns} data={data || []} onEdit={(row) => navigate(`${row.id}`)} onDelete={handleDelete} />
-      <ConfirmDialog open={openDialog} title="Eliminar" message="¿Estás seguro?" onConfirm={confirmDelete} onCancel={() => setOpenDialog(false)} />
+      <Button variant="contained" onClick={() => navigate('/students/new')}>
+        Crear Estudiante
+      </Button>
+      <DataTable
+        columns={columns}
+        data={students}
+        onEdit={(row) => navigate(`/students/${row.id}`)}
+        onDelete={handleDelete}
+      />
+      <ConfirmDialog
+        open={openDialog}
+        title="Eliminar"
+        message="¿Estás seguro de que deseas eliminar este estudiante?"
+        onConfirm={confirmDelete}
+        onCancel={() => setOpenDialog(false)}
+      />
     </Container>
   );
 };

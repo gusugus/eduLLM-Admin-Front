@@ -1,10 +1,13 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
-import useAuthStore from '../stores/authStore';
 
 const PrivateRoute = ({ children }) => {
-  const token = useAuthStore((state) => state.token);
-  return token ? children : <Navigate to="/login" />;
+  const token = localStorage.getItem('jwtToken');
+  if (!token) {
+    const loginUrl = import.meta.env.VITE_LOGIN_URL || `${import.meta.env.VITE_API_URL}login`;
+    window.location.href = loginUrl;
+    return null;
+  }
+  return children;
 };
 
 export default PrivateRoute;

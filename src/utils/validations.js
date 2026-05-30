@@ -89,6 +89,76 @@ export const validateUsername = (username) => {
   return /^[a-zA-Z0-9_-]+$/.test(username);
 };
 
+export const studentValidationRules = {
+  cedula: {
+    required: 'La cédula es requerida',
+    validate: (value) => {
+      if (!value) return true;
+      if (!onlyNumbers(value)) return 'La cédula solo debe contener números';
+      if (value.length !== 10) return 'La cédula debe tener 10 dígitos';
+      if (!validateEcuadorianId(value)) return 'Cédula ecuatoriana inválida';
+      return true;
+    }
+  },
+  primer_nombre: {
+    required: 'El nombre es requerido',
+    validate: (value) => {
+      if (!value) return true;
+      if (!onlyLetters(value)) return 'El nombre solo debe contener letras';
+      if (value.length < 2) return 'El nombre debe tener al menos 2 caracteres';
+      return true;
+    }
+  },
+  apellido_paterno: {
+    required: 'El apellido paterno es requerido',
+    validate: (value) => {
+      if (!value) return true;
+      if (!onlyLetters(value)) return 'El apellido solo debe contener letras';
+      if (value.length < 2) return 'El apellido debe tener al menos 2 caracteres';
+      return true;
+    }
+  },
+  apellido_materno: {
+    validate: (value) => {
+      if (value && !onlyLetters(value)) return 'El apellido solo debe contener letras';
+      return true;
+    }
+  },
+  correo: {
+    required: 'El correo es requerido',
+    validate: (value) => {
+      if (!value) return true;
+      if (!validateEmail(value)) return 'Correo electrónico inválido';
+      return true;
+    }
+  },
+  password: {
+    required: 'La contraseña es requerida',
+    minLength: {
+      value: 6,
+      message: 'La contraseña debe tener al menos 6 caracteres'
+    }
+  },
+  codigo_estudiante: {
+    validate: (value) => {
+      if (value && !/^[a-zA-Z0-9_-]+$/.test(value)) return 'Solo letras, números, guiones';
+      return true;
+    }
+  },
+  grado: {
+    validate: (value) => {
+      if (value && !/^[a-zA-Z0-9\s]+$/.test(value)) return 'Caracteres no válidos';
+      return true;
+    }
+  },
+  grupo: {
+    validate: (value) => {
+      if (value && value.length > 20) return 'Máximo 20 caracteres';
+      return true;
+    }
+  }
+};
+
 export const professorValidationRules = {
   cedula: {
     required: 'La cédula es requerida',

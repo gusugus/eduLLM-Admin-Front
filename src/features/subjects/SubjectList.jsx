@@ -7,22 +7,25 @@ import ConfirmDialog from '../../components/common/ConfirmDialog';
 
 const columns = [
   { field: 'id', headerName: 'ID' },
-  { field: 'name', headerName: 'Nombre' },
-  // añade más según tu modelo
+  { field: 'nombre', headerName: 'Nombre' },
+  { field: 'descripcion', headerName: 'Descripción' },
+  { field: 'estado', headerName: 'Estado' },
 ];
 
 const SubjectsList = () => {
   const navigate = useNavigate();
-  const { data, isLoading, deleteSubjects } = useSubjects();
+  const { data, isLoading, deleteSubject } = useSubjects();
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
+
+  const subjects = data?.data || data || [];
 
   const handleDelete = (id) => {
     setSelectedId(id);
     setOpenDialog(true);
   };
   const confirmDelete = async () => {
-    await deleteSubjects.mutateAsync(selectedId);
+    await deleteSubject.mutateAsync(selectedId);
     setOpenDialog(false);
   };
 
@@ -31,9 +34,22 @@ const SubjectsList = () => {
   return (
     <Container>
       <Typography variant="h4" gutterBottom>Materias</Typography>
-      <Button variant="contained" onClick={() => navigate('new')}>Crear Materia</Button>
-      <DataTable columns={columns} data={data || []} onEdit={(row) => navigate(`${row.id}`)} onDelete={handleDelete} />
-      <ConfirmDialog open={openDialog} title="Eliminar" message="¿Estás seguro?" onConfirm={confirmDelete} onCancel={() => setOpenDialog(false)} />
+      <Button variant="contained" onClick={() => navigate('/subjects/new')}>
+        Crear Materia
+      </Button>
+      <DataTable
+        columns={columns}
+        data={subjects}
+        onEdit={(row) => navigate(`/subjects/${row.id}`)}
+        onDelete={handleDelete}
+      />
+      <ConfirmDialog
+        open={openDialog}
+        title="Eliminar"
+        message="¿Estás seguro de que deseas eliminar esta materia?"
+        onConfirm={confirmDelete}
+        onCancel={() => setOpenDialog(false)}
+      />
     </Container>
   );
 };

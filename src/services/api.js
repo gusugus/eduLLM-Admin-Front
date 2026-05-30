@@ -1,15 +1,22 @@
 import axios from 'axios';
 
+const GATEWAY = import.meta.env.VITE_GATEWAY_URL || 'http://localhost:8085';
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-  headers: { 'Content-Type': 'application/json' },
+  baseURL: `${GATEWAY}/api/admin`,
+  withCredentials: true
 });
 
-// Interceptor para agregar token
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+// Interceptor para manejar errores 401 (no autenticado)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Redirigir al login si la sesión expiró
+      window.location.href = '/';
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default api;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { List, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
-import { Dashboard, People, School, Book } from '@mui/icons-material';
+import { Dashboard, People, School, Book, Assignment } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
 const Sidebar = () => {
@@ -10,6 +10,7 @@ const Sidebar = () => {
     { text: 'Profesores', icon: <People />, path: '/professors' },
     { text: 'Estudiantes', icon: <School />, path: '/students' },
     { text: 'Materias', icon: <Book />, path: '/subjects' },
+    { text: 'Asignaciones', icon: <Assignment />, path: '/assignments' },
   ];
 
   return (

@@ -26,11 +26,11 @@ export const studentService = {
                         return []; 
                       }),
   delete: (id) => api.delete(`/students/${id}`)
-                        .then(res => res.data.data|| [])
-                      .catch(err => {
-                        console.error('Error fetching students:', err);
-                        return []; 
-                      }),
+                        .then(res => res.data || [])
+                        .catch(err => {
+                          console.error('Error deleting student:', err);
+                          return [];
+                        }),
 };
 
 export default studentService;

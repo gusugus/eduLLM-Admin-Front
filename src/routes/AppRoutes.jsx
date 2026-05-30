@@ -7,6 +7,7 @@ import StudentList from '../features/students/StudentList';
 import StudentForm from '../features/students/StudentForm';
 import SubjectList from '../features/subjects/SubjectList';
 import SubjectForm from '../features/subjects/SubjectForm';
+import AssignmentsPage from '../features/assignments/AssignmentsPage';
 
 const AppRoutes = () => {
   return (
@@ -21,6 +22,7 @@ const AppRoutes = () => {
       <Route path="/subjects" element={<SubjectList />} />
       <Route path="/subjects/new" element={<SubjectForm />} />
       <Route path="/subjects/:id" element={<SubjectForm />} />
+      <Route path="/assignments" element={<AssignmentsPage />} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
