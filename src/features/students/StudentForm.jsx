@@ -4,13 +4,14 @@ import {
   Container, Typography, Button, Box,
   Grid, Paper, Alert, CircularProgress,
   Dialog, DialogTitle, DialogContent,
-  DialogContentText, DialogActions
+  DialogContentText, DialogActions,
 } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
 import { debounce } from 'lodash';
 import FormInput from '../../components/common/FormInput';
 import { useStudents } from './hooks/useStudents';
+import uploadService from '../../services/uploadService';
 import {
   studentValidationRules,
   checkUsernameAvailability,
@@ -30,6 +31,9 @@ const StudentsForm = () => {
   const [usernameExists, setUsernameExists] = useState(false);
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [foto, setFoto] = useState(null);
+  const [fotoPreview, setFotoPreview] = useState(null);
+  const [fotoUrlActual, setFotoUrlActual] = useState(null);
 
   const { control, register, handleSubmit, watch, setValue, getValues, trigger, reset, formState: { errors, isSubmitting }, setError, clearErrors } = useForm({
     mode: 'onBlur',
@@ -37,14 +41,12 @@ const StudentsForm = () => {
     defaultValues: {
       cedula: '',
       primer_nombre: '',
+      segundo_nombre: '',
       apellido_paterno: '',
       apellido_materno: '',
       correo: '',
       username: '',
-      password: '',
-      codigo_estudiante: '',
-      grado: '',
-      grupo: ''
+      password: ''
     }
   });
 
@@ -56,16 +58,12 @@ const StudentsForm = () => {
       reset({
         cedula: stu.cedula || '',
         primer_nombre: stu.primer_nombre || '',
+        segundo_nombre: stu.segundo_nombre || '',
         apellido_paterno: stu.apellido_paterno || '',
         apellido_materno: stu.apellido_materno || '',
-        correo: stu.correo || '',
-        username: stu.username || '',
-        password: '',
-        codigo_estudiante: stu.codigo_estudiante || '',
-        grado: stu.grado || '',
-        grupo: stu.grupo || ''
+        correo: stu.correo || ''
       });
-      setGeneratedUsername(stu.username || '');
+      setFotoUrlActual(stu.foto_url || null);
       clearErrors();
     }
   }, [isEdit, studentData, reset, clearErrors]);
@@ -118,6 +116,8 @@ const StudentsForm = () => {
   }, [currentUsername, isEdit, checkUsernameAvailabilityDebounced]);
 
   const generateNewUsername = useCallback(async () => {
+    if (isEdit) return;
+
     const currentPrimer = getValues('primer_nombre');
     const currentApellido = getValues('apellido_paterno');
 
@@ -154,16 +154,31 @@ const StudentsForm = () => {
 
   const onSubmit = async (formData) => {
     try {
+      let idUsuario;
+      let response;
+
       if (isEdit) {
         const { username, password, ...updateData } = formData;
-        await updateStudent.mutateAsync({ id, data: updateData });
-        enqueueSnackbar('Estudiante actualizado exitosamente', { variant: 'success' });
-        navigate('/students');
+        response = await updateStudent.mutateAsync({ id, data: updateData });
+        idUsuario = response?.data?.id_usuario;
       } else {
-        await createStudent.mutateAsync(formData);
-        enqueueSnackbar('Estudiante creado exitosamente', { variant: 'success' });
-        navigate('/students');
+        response = await createStudent.mutateAsync(formData);
+        idUsuario = response?.data?.id_usuario;
       }
+
+      if (foto && idUsuario) {
+        try {
+          await uploadService.uploadProfilePhoto(foto, idUsuario);
+          enqueueSnackbar(isEdit ? 'Estudiante actualizado con foto' : 'Estudiante creado con foto', { variant: 'success' });
+        } catch (uploadErr) {
+          console.error('Error al subir foto:', uploadErr);
+          enqueueSnackbar(isEdit ? 'Estudiante actualizado pero error al subir la foto' : 'Estudiante creado pero error al subir la foto', { variant: 'warning' });
+        }
+      } else {
+        enqueueSnackbar(response?.message || (isEdit ? 'Estudiante actualizado exitosamente' : 'Estudiante creado exitosamente'), { variant: 'success' });
+      }
+
+      navigate('/students');
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message || 'Error al guardar';
       setErrorMessage(errorMsg);
@@ -183,6 +198,7 @@ const StudentsForm = () => {
       { name: 'primer_nombre', label: 'Primer Nombre', required: true, sm: 12, mask: 'letters', validation: studentValidationRules.primer_nombre,
         onBlurCustom: () => generateNewUsername()
       },
+      { name: 'segundo_nombre', label: 'Segundo Nombre', required: false, sm: 12, mask: 'letters', validation: studentValidationRules.segundo_nombre },
       { name: 'apellido_paterno', label: 'Apellido Paterno', required: true, sm: 12, mask: 'letters',
         validation: studentValidationRules.apellido_paterno,
         onBlurCustom: () => generateNewUsername()
@@ -190,11 +206,7 @@ const StudentsForm = () => {
       { name: 'apellido_materno', label: 'Apellido Materno', required: false, sm: 12, mask: 'letters', validation: studentValidationRules.apellido_materno },
       { name: 'correo', label: 'Correo Electrónico', required: true, type: 'email', sm: 12, validation: studentValidationRules.correo }
     ],
-    estudiante: [
-      { name: 'codigo_estudiante', label: 'Código Estudiante', required: false, sm: 6, validation: studentValidationRules.codigo_estudiante },
-      { name: 'grado', label: 'Grado', required: false, sm: 3, validation: studentValidationRules.grado },
-      { name: 'grupo', label: 'Grupo', required: false, sm: 3, validation: studentValidationRules.grupo }
-    ],
+    estudiante: [],
     credenciales: !isEdit ? [
       {
         name: 'username',
@@ -271,25 +283,37 @@ const StudentsForm = () => {
             ))}
 
             <Grid item xs={12}>
-              <Typography variant="h6" color="primary">Información Académica</Typography>
-            </Grid>
-
-            {fields.estudiante.map((field) => (
-              <FormInput
-                key={field.name}
-                name={field.name}
-                label={field.label}
-                register={register}
-                errors={errors}
-                control={control}
-                required={field.required}
-                type={field.type || 'text'}
-                sm={field.sm}
-                mask={field.mask}
-                maxLength={field.maxLength}
-                validation={field.validation}
+              <Typography variant="h6" color="primary" gutterBottom>Foto de Perfil</Typography>
+              <input
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                style={{ display: 'none' }}
+                id="profile-photo-input"
+                type="file"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    setFoto(file);
+                    setFotoPreview(URL.createObjectURL(file));
+                  }
+                }}
               />
-            ))}
+              <label htmlFor="profile-photo-input">
+                <Button variant="outlined" component="span">
+                  {foto ? 'Cambiar foto' : 'Seleccionar foto'}
+                </Button>
+              </label>
+              {fotoPreview && (
+                <Box sx={{ mt: 2 }}>
+                  <img src={fotoPreview} alt="Preview" style={{ maxWidth: 150, maxHeight: 150, borderRadius: 8 }} />
+                </Box>
+              )}
+              {!foto && fotoUrlActual && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="caption" color="text.secondary">Foto actual:</Typography>
+                  <img src={fotoUrlActual} alt="Foto actual" style={{ maxWidth: 150, maxHeight: 150, borderRadius: 8, display: 'block' }} />
+                </Box>
+              )}
+            </Grid>
 
             {fields.credenciales.length > 0 && (
               <>

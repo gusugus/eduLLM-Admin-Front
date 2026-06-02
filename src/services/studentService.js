@@ -14,23 +14,11 @@ export const studentService = {
                         return []; 
                       }),
   create: (data) => api.post('/students', data)
-                        .then(res => res.data.data|| [])
-                      .catch(err => {
-                        console.error('Error fetching students:', err);
-                        return []; 
-                      }),
+                        .then(res => res.data),
   update: (id, data) => api.put(`/students/${id}`, data)
-                        .then(res => res.data.data|| [])
-                      .catch(err => {
-                        console.error('Error fetching students:', err);
-                        return []; 
-                      }),
+                        .then(res => res.data),
   delete: (id) => api.delete(`/students/${id}`)
-                        .then(res => res.data || [])
-                        .catch(err => {
-                          console.error('Error deleting student:', err);
-                          return [];
-                        }),
+                        .then(res => res.data),
 };
 
 export default studentService;

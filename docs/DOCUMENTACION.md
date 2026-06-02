@@ -256,6 +256,7 @@ Formulario avanzado con:
 |-----------------|-------------------|----------------|-------------------------------|
 | Datos Personales | cedula            | `cedula` (10 dígitos) | Algoritmo cédula ecuatoriana |
 |                  | primer_nombre     | `letters`      | Mínimo 2 caracteres, solo letras |
+|                  | segundo_nombre    | `letters`      | Solo letras (opcional)        |
 |                  | apellido_paterno  | `letters`      | Mínimo 2 caracteres, solo letras |
 |                  | apellido_materno  | `letters`      | Solo letras (opcional)        |
 |                  | correo            | -              | Email válido (validator.js)   |
@@ -366,6 +367,7 @@ Misma estructura que professorService pero apuntan a `/students` y `/subjects`. 
 {
   cedula:           { required, validate: cédula ecuatoriana },
   primer_nombre:    { required, validate: solo letras, min 2 },
+  segundo_nombre:   { validate: solo letras (opcional) },
   apellido_paterno: { required, validate: solo letras, min 2 },
   apellido_materno: { validate: solo letras (opcional) },
   correo:           { required, validate: email },

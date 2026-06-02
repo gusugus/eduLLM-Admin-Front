@@ -1,17 +1,27 @@
 import React, { useState } from 'react';
 import { Typography, Avatar, Box, IconButton, Menu, MenuItem, Divider, ListItemIcon } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
+import axios from 'axios';
+import { useAuth } from '../../hooks/useAuth';
+
+const GATEWAY = import.meta.env.VITE_GATEWAY_URL || 'http://localhost:8085';
 
 const Header = () => {
+  const { logout: clearSession } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleMenu = (e) => setAnchorEl(e.currentTarget);
   const handleClose = () => setAnchorEl(null);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     localStorage.removeItem('jwtToken');
-    const loginUrl = import.meta.env.VITE_LOGIN_URL || `${import.meta.env.VITE_API_URL}login`;
-    window.location.href = loginUrl;
+    clearSession();
+    try {
+      await axios.post(`${GATEWAY}/api/auth/logout`, null, { withCredentials: true });
+    } catch (_) {
+      // fallback: ignorar error
+    }
+    window.location.href = '/';
   };
 
   return (

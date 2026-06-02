@@ -1,6 +1,6 @@
 # 4. Rutas de la Aplicación
 
-Todas las rutas se definen en `src/routes/AppRoutes.jsx` y se renderizan dentro de `Layout` (que incluye AppBar + Sidebar).
+Todas las rutas se definen en `src/routes/AppRoutes.jsx` y se renderizan dentro de `AuthGate` → `Layout` (que incluye AppBar + Sidebar).
 
 ## Tabla de Rutas
 
@@ -10,12 +10,13 @@ Todas las rutas se definen en `src/routes/AppRoutes.jsx` y se renderizan dentro 
 | `/professors` | `ProfessorList` | Listado de profesores | ✅ |
 | `/professors/new` | `ProfessorForm` | Crear nuevo profesor | ✅ |
 | `/professors/:id` | `ProfessorForm` | Editar profesor existente | ✅ |
-| `/students` | `StudentList` | Listado de estudiantes | ⚠️ Stub |
-| `/students/new` | `StudentForm` | Crear estudiante | ⚠️ Stub |
-| `/students/:id` | `StudentForm` | Editar estudiante | ⚠️ Stub |
-| `/subjects` | `SubjectList` | Listado de materias | ⚠️ Stub |
-| `/subjects/new` | `SubjectForm` | Crear materia | ⚠️ Stub |
-| `/subjects/:id` | `SubjectForm` | Editar materia | ⚠️ Stub |
+| `/students` | `StudentList` | Listado de estudiantes | ✅ |
+| `/students/new` | `StudentForm` | Crear estudiante | ✅ |
+| `/students/:id` | `StudentForm` | Editar estudiante | ✅ |
+| `/subjects` | `SubjectList` | Listado de materias | ✅ |
+| `/subjects/new` | `SubjectForm` | Crear materia | ✅ |
+| `/subjects/:id` | `SubjectForm` | Editar materia | ✅ |
+| `/assignments` | `AssignmentsPage` | Asignaciones (prof→materia, est→materia) | ✅ |
 | `*` | `Navigate to="/"` | Redirect al dashboard | ✅ |
 
 ## Código real (`src/routes/AppRoutes.jsx`)
@@ -33,6 +34,7 @@ const AppRoutes = () => (
     <Route path="/subjects" element={<SubjectList />} />
     <Route path="/subjects/new" element={<SubjectForm />} />
     <Route path="/subjects/:id" element={<SubjectForm />} />
+    <Route path="/assignments" element={<AssignmentsPage />} />
     <Route path="*" element={<Navigate to="/" />} />
   </Routes>
 );
@@ -40,7 +42,7 @@ const AppRoutes = () => (
 
 ## PrivateRoute (`src/routes/PrivateRoute.jsx`)
 
-Componente guard que redirige a `/login` si no hay token:
+Componente guard que redirige a `/login` si no hay sesión:
 
 ```jsx
 const PrivateRoute = ({ children }) => {
@@ -49,4 +51,4 @@ const PrivateRoute = ({ children }) => {
 };
 ```
 
-> **Nota**: Actualmente `PrivateRoute` **no se usa** en `AppRoutes`. Todas las rutas son públicas. El componente está listo para activarse cuando se implemente autenticación.
+> **Nota**: Actualmente `PrivateRoute` **no se usa**. La autenticación se maneja en `AuthGate` (App.jsx) mediante `GET /api/auth/verify`.

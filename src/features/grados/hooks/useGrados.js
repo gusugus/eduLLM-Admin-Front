@@ -1,43 +1,43 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import subjectService from '../../../services/subjectService';
+import gradoService from '../../../services/gradoService';
 
-const QUERY_KEY = 'subjects';
+const QUERY_KEY = 'grados';
 
-export const useSubjects = ({ enableList = true } = {}) => {
+export const useGrados = ({ enableList = true } = {}) => {
   const queryClient = useQueryClient();
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [QUERY_KEY],
-    queryFn: () => subjectService.getAll(),
+    queryFn: () => gradoService.getAll(),
     retry: 1,
     enabled: enableList,
   });
 
-  const useSubjectById = (id) => {
+  const useGradoById = (id) => {
     return useQuery({
       queryKey: [QUERY_KEY, id],
-      queryFn: () => subjectService.getById(id),
+      queryFn: () => gradoService.getById(id),
       enabled: !!id,
       retry: 1,
     });
   };
 
   const createMutation = useMutation({
-    mutationFn: (newData) => subjectService.create(newData),
+    mutationFn: (newData) => gradoService.create(newData),
     onSuccess: () => {
       queryClient.invalidateQueries([QUERY_KEY]);
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => subjectService.update(id, data),
+    mutationFn: ({ id, data }) => gradoService.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries([QUERY_KEY]);
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => subjectService.delete(id),
+    mutationFn: (id) => gradoService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries([QUERY_KEY]);
     },
@@ -48,9 +48,9 @@ export const useSubjects = ({ enableList = true } = {}) => {
     isLoading,
     error,
     refetch,
-    useSubjectById,
-    createSubject: createMutation,
-    updateSubject: updateMutation,
-    deleteSubject: deleteMutation,
+    useGradoById,
+    createGrado: createMutation,
+    updateGrado: updateMutation,
+    deleteGrado: deleteMutation,
   };
 };

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import axios from 'axios';
+import { useAuth } from '../../hooks/useAuth';
 
 function LoginForm() {
   const [username, setUsername] = useState('');
@@ -9,6 +10,7 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
+  const { setUser } = useAuth();
 
   const GATEWAY_URL = import.meta.env.VITE_GATEWAY_URL || 'http://localhost:8085';
 
@@ -22,8 +24,13 @@ function LoginForm() {
         password
       }, { withCredentials: true });
 
+      if (response.data.token) {
+        localStorage.setItem('jwtToken', response.data.token);
+      }
+
+      setUser(response.data);
       enqueueSnackbar(`✅ Bienvenido ${response.data.username}!`, { variant: 'success' });
-      navigate('/dashboard');
+      navigate('/');
     } catch (error) {
       console.error('Login error:', error);
       const errorMsg = error.response?.data?.message || 'Credenciales inválidas';

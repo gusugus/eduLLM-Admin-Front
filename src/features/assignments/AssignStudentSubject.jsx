@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box, Grid, Typography, Button, MenuItem, TextField,
   Table, TableHead, TableRow, TableCell, TableBody, Paper,
-  Checkbox, IconButton, Chip
+  Checkbox, IconButton, Chip, InputAdornment
 } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useStudents } from '../../features/students/hooks/useStudents';
 import { useSubjects } from '../../features/subjects/hooks/useSubjects';
@@ -19,9 +20,40 @@ const AssignStudentSubject = () => {
 
   const [id_materia, setIdMateria] = useState('');
   const [selected, setSelected] = useState([]);
+  const [search, setSearch] = useState('');
+
+  const handleMateriaChange = (e) => {
+    setIdMateria(e.target.value);
+    setSelected([]);
+    setSearch('');
+  };
+
+  const assignedStudentIds = new Set(
+    (studentAssignments || [])
+      .filter(a => a.estado === 'Activo' && a.id_materia === parseInt(id_materia))
+      .map(a => a.id_estudiante)
+  );
+  const availableStudents = students.filter(s => !assignedStudentIds.has(s.id));
+
+  const filteredStudents = useMemo(() => {
+    if (!search) return availableStudents;
+    const q = search.toLowerCase();
+    return availableStudents.filter(s =>
+      s.nombreCompleto?.toLowerCase().includes(q) ||
+      s.cedula?.toLowerCase().includes(q)
+    );
+  }, [availableStudents, search]);
 
   const toggleStudent = (id) => {
     setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const toggleAll = () => {
+    if (selected.length === filteredStudents.length) {
+      setSelected([]);
+    } else {
+      setSelected(filteredStudents.map(s => s.id));
+    }
   };
 
   const handleAssign = async () => {
@@ -41,9 +73,9 @@ const AssignStudentSubject = () => {
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} sm={6}>
           <TextField select fullWidth label="Materia" value={id_materia}
-            onChange={e => setIdMateria(e.target.value)}>
+            onChange={handleMateriaChange}>
             {subjects.map(s => (
-              <MenuItem key={s.id} value={s.id}>{s.nombre}</MenuItem>
+              <MenuItem key={s.id} value={s.id}>{s.nombre} ({s.grado?.nombre_completo || 'Sin curso'})</MenuItem>
             ))}
           </TextField>
         </Grid>
@@ -56,18 +88,31 @@ const AssignStudentSubject = () => {
         </Grid>
       </Grid>
 
+      <TextField
+        fullWidth size="small" placeholder="Buscar estudiante..."
+        value={search} onChange={e => setSearch(e.target.value)}
+        sx={{ mb: 1 }}
+        InputProps={{
+          startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment>
+        }}
+      />
       <Paper sx={{ maxHeight: 260, overflow: 'auto', mb: 3 }}>
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow>
-              <TableCell padding="checkbox"><Checkbox disabled /></TableCell>
+              <TableCell padding="checkbox">
+                <Checkbox
+                  checked={filteredStudents.length > 0 && selected.length === filteredStudents.length}
+                  indeterminate={selected.length > 0 && selected.length < filteredStudents.length}
+                  onClick={toggleAll}
+                />
+              </TableCell>
               <TableCell>Estudiante</TableCell>
               <TableCell>Cédula</TableCell>
-              <TableCell>Código</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {students.map(s => (
+            {filteredStudents.map(s => (
               <TableRow key={s.id} hover selected={selected.includes(s.id)}
                 onClick={() => toggleStudent(s.id)} sx={{ cursor: 'pointer' }}>
                 <TableCell padding="checkbox">
@@ -75,18 +120,21 @@ const AssignStudentSubject = () => {
                 </TableCell>
                 <TableCell>{s.nombreCompleto}</TableCell>
                 <TableCell>{s.cedula}</TableCell>
-                <TableCell>{s.codigo_estudiante || '-'}</TableCell>
               </TableRow>
             ))}
-            {students.length === 0 && (
-              <TableRow><TableCell colSpan={4} align="center">Sin estudiantes</TableCell></TableRow>
+            {filteredStudents.length === 0 && (
+              <TableRow><TableCell colSpan={3} align="center">{id_materia ? (search ? 'Sin resultados' : 'Todos los estudiantes ya están asignados') : 'Seleccione una materia'}</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
       </Paper>
 
       <Typography variant="subtitle1" gutterBottom>Asignaciones actuales</Typography>
-      {isLoadingStud ? <Typography>Cargando...</Typography> : (
+      {!id_materia ? (
+        <Typography sx={{ mt: 2, textAlign: 'center', color: 'text.secondary' }}>Escoja materia para comenzar a asignar</Typography>
+      ) : isLoadingStud ? (
+        <Typography>Cargando...</Typography>
+      ) : (
         <Paper>
           <Table size="small">
             <TableHead>
@@ -98,7 +146,7 @@ const AssignStudentSubject = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {studentAssignments?.filter(a => a.estado === 'Activo').map(a => (
+              {studentAssignments?.filter(a => a.estado === 'Activo' && a.id_materia === parseInt(id_materia)).map(a => (
                 <TableRow key={a.id}>
                   <TableCell>{a.estudiante}</TableCell>
                   <TableCell>{a.materia}</TableCell>
@@ -110,8 +158,8 @@ const AssignStudentSubject = () => {
                   </TableCell>
                 </TableRow>
               ))}
-              {(!studentAssignments || studentAssignments.filter(a => a.estado === 'Activo').length === 0) && (
-                <TableRow><TableCell colSpan={4} align="center">Sin asignaciones</TableCell></TableRow>
+              {(!studentAssignments || studentAssignments.filter(a => a.estado === 'Activo' && a.id_materia === parseInt(id_materia)).length === 0) && (
+                <TableRow><TableCell colSpan={4} align="center">Sin asignaciones para esta materia</TableCell></TableRow>
               )}
             </TableBody>
           </Table>

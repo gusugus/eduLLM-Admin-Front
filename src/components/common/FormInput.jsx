@@ -53,6 +53,9 @@ const FormInput = ({
       case 'username':
         val = val.replace(/[^a-zA-Z0-9_-]/g, '');
         break;
+      case 'uppercase': 
+        val = val.toUpperCase();
+        break;
       default:
         break;
     }

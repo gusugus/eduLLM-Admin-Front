@@ -3,10 +3,18 @@
 ## Variables de Entorno (`.env`)
 
 ```env
-VITE_API_URL=http://localhost:8002/api/v1
+VITE_API_URL=http://localhost:8085/api/admin/
+VITE_LOGIN_URL=http://localhost:8085/login
+VITE_GATEWAY_URL=http://localhost:8085
 ```
 
-Accesible en código como `import.meta.env.VITE_API_URL`. No lleva prefijo `VITE_` no se expone al bundle.
+| Variable | Descripción |
+|----------|-------------|
+| `VITE_API_URL` | URL base del backend (no se usa directamente en services) |
+| `VITE_LOGIN_URL` | URL externa de login (para redirects fallback) |
+| `VITE_GATEWAY_URL` | URL del gateway → se usa como base para `api.js` con sufijo `/api` |
+
+Accesibles en código como `import.meta.env.VITE_*`. Sin prefijo `VITE_` no se exponen al bundle.
 
 ## Scripts npm
 
@@ -32,8 +40,6 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 ```
-
-> **Nota**: Requiere archivo `nginx.conf` para SPA routing (redirect a `index.html`). No existe actualmente en el repo.
 
 ## Providers Pipeline (`main.jsx`)
 
@@ -62,6 +68,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   </React.StrictMode>
 );
 ```
+
+> **Nota**: No hay lógica de redirect en `main.jsx`. La verificación de autenticación se hace en `AuthGate` (App.jsx) mediante `GET /api/auth/verify` con cookies.
 
 ## Tema MUI (`src/theme.js`)
 

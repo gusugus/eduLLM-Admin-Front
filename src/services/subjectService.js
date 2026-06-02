@@ -14,23 +14,11 @@ export const subjectService = {
                         return [];
                       }),
   create: (data) => api.post('/subjects', data)
-                        .then(res => res.data.data || [])
-                        .catch(err => {
-                          console.error('Error creating subject:', err);
-                          return [];
-                        }),
+                        .then(res => res.data),
   update: (id, data) => api.put(`/subjects/${id}`, data)
-                          .then(res => res.data.data || [])
-                          .catch(err => {
-                            console.error('Error updating subject:', err);
-                            return [];
-                          }),
+                          .then(res => res.data),
   delete: (id) => api.delete(`/subjects/${id}`)
-                      .then(res => res.data || [])
-                      .catch(err => {
-                        console.error('Error deleting subject:', err);
-                        return [];
-                      }),
+                      .then(res => res.data),
 };
 
 export default subjectService;

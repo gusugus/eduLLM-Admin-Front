@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSnackbar } from 'notistack';
 import {
   Box, Grid, Typography, Button, MenuItem, TextField,
   Table, TableHead, TableRow, TableCell, TableBody, Paper,
@@ -17,6 +18,7 @@ const AssignProfessorSubject = () => {
   const professors = profsData?.data || profsData || [];
   const subjects = subsData?.data || subsData || [];
 
+  const { enqueueSnackbar } = useSnackbar();
   const [id_profesor, setIdProfesor] = useState('');
   const [id_materia, setIdMateria] = useState('');
 
@@ -27,7 +29,8 @@ const AssignProfessorSubject = () => {
       setIdProfesor('');
       setIdMateria('');
     } catch (e) {
-      // error handled by snackbar via mutation
+      const msg = e?.response?.data?.message || e?.message || 'Error al asignar';
+      enqueueSnackbar(msg, { variant: 'error' });
     }
   };
 
@@ -48,7 +51,7 @@ const AssignProfessorSubject = () => {
           <TextField select fullWidth label="Materia" value={id_materia}
             onChange={e => setIdMateria(e.target.value)}>
             {subjects.map(s => (
-              <MenuItem key={s.id} value={s.id}>{s.nombre}</MenuItem>
+              <MenuItem key={s.id} value={s.id}>{s.nombre} ({s.grado?.nombre_completo || 'Sin curso'})</MenuItem>
             ))}
           </TextField>
         </Grid>

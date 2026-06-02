@@ -14,18 +14,11 @@ export const professorService = {
                       return [];
                     }),
   create: (data) => api.post('/professors', data)
-                      .then(res => res.data.data|| [])
-                      .catch(err => {
-                      console.error('Error fetching professors:', err);
-                      return [];
-                    }),
+                      .then(res => res.data),
   update: (id, data) => api.put(`/professors/${id}`, data)
-                      .then(res => res.data.data|| [])
-                      .catch(err => {
-                      console.error('Error fetching professors:', err);
-                      return [];
-                    }),
-  delete: (id) => api.delete(`/professors/${id}`).then(res => res.data|| []),
+                      .then(res => res.data),
+  delete: (id) => api.delete(`/professors/${id}`)
+                      .then(res => res.data),
 };
 
 export default professorService;

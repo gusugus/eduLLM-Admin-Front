@@ -35,7 +35,7 @@ Tabla genérica con columnas dinámicas y botones de acción.
 ### Props
 | Prop | Tipo | Descripción |
 |------|------|-------------|
-| `columns` | `Array` | `[{ field: 'id', headerName: 'ID' }, ...]` |
+| `columns` | `Array` | `[{ field: 'id', headerName: 'ID' }, ...]` — Cada columna puede incluir `render: (row) => <JSX>` para renderizado personalizado |
 | `data` | `Array` | Array de objetos a renderizar |
 | `onEdit` | `Function` | Callback con la fila completa al hacer clic en editar |
 | `onDelete` | `Function` | Callback con el `id` al hacer clic en eliminar |
@@ -49,8 +49,6 @@ const columns = [
   { field: 'estado', headerName: 'Estado' },
 ];
 ```
-
-> Varias columnas están comentadas (cedula, correo, departamento, rol). Se pueden activar según necesidad.
 
 ---
 
@@ -102,15 +100,45 @@ Diálogo de confirmación para eliminar registros.
 
 ---
 
-## 5.5 Header (`components/layout/Header.jsx`)
+## 5.5 LoadingScreen (`components/common/LoadingScreen.jsx`)
 
-Barra superior dentro del AppBar. Muestra:
-- Título "eduLLM Admin" (Typography h6)
-- Avatar genérico
+Pantalla de carga con spinner y mensaje configurable.
+
+### Props
+| Prop | Tipo | Default | Descripción |
+|------|------|---------|-------------|
+| `message` | `string` | `'Cargando...'` | Mensaje que aparece tras el delay |
+| `delay` | `number` | `500` | Milisegundos antes de mostrar el mensaje |
+
+### Uso
+```jsx
+<LoadingScreen message="🔍 Verificando autenticación..." delay={300} />
+```
 
 ---
 
-## 5.6 Sidebar (`components/layout/Sidebar.jsx`)
+## 5.6 RedirectWithDelay (`components/common/RedirectWithDelay.jsx`)
+
+Componente de redirección con cuenta regresiva. Muestra un mensaje y redirige después de un delay.
+
+### Props
+| Prop | Tipo | Default | Descripción |
+|------|------|---------|-------------|
+| `to` | `string` | — | URL de destino |
+| `message` | `string` | — | Mensaje a mostrar |
+| `delay` | `number` | `2000` | Milisegundos antes de redirigir |
+
+---
+
+## 5.7 Header (`components/layout/Header.jsx`)
+
+Barra superior dentro del AppBar. Muestra:
+- Título "eduLLM Admin" (Typography h6)
+- Avatar con menú desplegable con opción **Salir** (limpia localStorage y redirige a login)
+
+---
+
+## 5.8 Sidebar (`components/layout/Sidebar.jsx`)
 
 Menú de navegación lateral con ListItemButtons:
 
@@ -120,10 +148,11 @@ Menú de navegación lateral con ListItemButtons:
 | Profesores | `People` | `/professors` |
 | Estudiantes | `School` | `/students` |
 | Materias | `Book` | `/subjects` |
+| Asignaciones | `Assignment` | `/assignments` |
 
 ---
 
-## 5.7 DashboardCards (`components/layout/DashboardCards.jsx`)
+## 5.9 DashboardCards (`components/layout/DashboardCards.jsx`)
 
 Tarjetas de resumen en el Dashboard. Cada tarjeta muestra un conteo.
 
@@ -132,3 +161,17 @@ Tarjetas de resumen en el Dashboard. Cada tarjeta muestra un conteo.
 | Profesores | `#1976d2` (azul) | `useProfessors()` |
 | Estudiantes | `#2e7d32` (verde) | `useStudents()` |
 | Materias | `#ed6c02` (naranja) | `useSubjects()` |
+
+---
+
+## 5.10 LoginForm (`components/auth/LoginForm.jsx`)
+
+Formulario de login embebido. Llama `POST /api/auth/login` con credenciales y recibe cookie HttpOnly del gateway.
+
+### Estados
+- **Cargando**: botón muestra "Iniciando sesión..."
+- **Error**: snackbar con mensaje del servidor
+- **Éxito**: snackbar de bienvenida + navega a `/dashboard`
+
+### Props
+Sin props (componente autónomo con estado interno).

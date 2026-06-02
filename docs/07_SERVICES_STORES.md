@@ -2,24 +2,33 @@
 
 ## 7.1 API Service (`services/api.js`)
 
-Instancia Axios base con interceptor JWT:
+Instancia Axios base:
 
 ```javascript
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,  // http://localhost:8002/api/v1
-  headers: { 'Content-Type': 'application/json' },
-});
+const GATEWAY = import.meta.env.VITE_GATEWAY_URL || 'http://localhost:8085';
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
+const api = axios.create({
+  baseURL: `${GATEWAY}/api`,
+  withCredentials: true
 });
 ```
 
-- **baseURL**: se toma de `VITE_API_URL`
-- **Interceptor**: Lee token de `localStorage` y lo agrega como `Authorization: Bearer <token>`
-- El token se guarda vía `authStore.login()` que usa `zustand/persist`
+- **baseURL**: `{GATEWAY}/api` (ej: `http://localhost:8085/api`)
+- **withCredentials**: `true` — envía cookies HttpOnly automáticamente
+- **No usa** `Authorization: Bearer` headers (la autenticación es cookie-based)
+
+### Interceptor de respuesta
+```javascript
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      window.location.href = '/';
+    }
+    return Promise.reject(error);
+  }
+);
+```
 
 ## 7.2 professorService (`services/professorService.js`)
 
@@ -33,14 +42,28 @@ api.interceptors.request.use((config) => {
 }
 ```
 
-- Todos los métodos fallbackean a `[]` si hay error (`.catch(console.error)`)
-- Extraen `res.data.data` del response del backend
+## 7.3 studentService (`services/studentService.js`)
 
-## 7.3 studentService / subjectService
+Misma estructura que professorService, apuntando a `/students`.
 
-Misma estructura que professorService, apuntando a `/students` y `/subjects` respectivamente. Actualmente retornan datos vacíos porque el backend es stub.
+## 7.4 subjectService (`services/subjectService.js`)
 
-## 7.4 Stores (Zustand)
+Misma estructura, apuntando a `/subjects`.
+
+## 7.5 assignmentService (`services/assignmentService.js`)
+
+```javascript
+{
+  assignProfessorToSubject: (data) => POST /assignments/professor-subject
+  listProfessorSubjects:    ()      => GET  /assignments/professor-subject
+  removeProfessorSubject:   (id)    => DELETE /assignments/professor-subject/:id
+  assignStudentsToSubject:  (data)  => POST /assignments/student-subject
+  listStudentSubjects:      ()      => GET  /assignments/student-subject
+  removeStudentSubject:     (id)    => DELETE /assignments/student-subject/:id
+}
+```
+
+## 7.6 Stores (Zustand)
 
 ### authStore (`stores/authStore.js`)
 ```javascript
@@ -50,15 +73,17 @@ useAuthStore.create(
       token: null,
       user: null,
       login: (token, user) => set({ token, user }),
+      setUser: (user) => set({ user }),
       logout: () => set({ token: null, user: null }),
     }),
-    { name: 'auth-storage' }  // clave en localStorage
+    { name: 'auth-storage' }
   )
 )
 ```
 
 - **Persistencia**: guarda estado en `localStorage` bajo la clave `auth-storage`
 - **login**: setea token y objeto user
+- **setUser**: actualiza solo el usuario (usado por `verifyAuth`)
 - **logout**: limpia token y user
 
 ### uiStore (`stores/uiStore.js`)
@@ -70,16 +95,35 @@ useUiStore.create((set) => ({
 ```
 
 - Estado local del sidebar (no persistido)
-- **sidebarOpen**: controla visibilidad del drawer en mobile
 
-## 7.5 Hooks
+## 7.7 Hooks
 
 ### useAuth (`hooks/useAuth.js`)
 ```javascript
 export const useAuth = () => {
-  const { token, user, login, logout } = useAuthStore();
-  return { token, user, login, logout, isAuthenticated: !!token };
+  const { token, user, setUser, login, logout } = useAuthStore();
+
+  const verifyAuth = useCallback(async () => {
+    const GATEWAY_URL = import.meta.env.VITE_GATEWAY_URL || 'http://localhost:8085';
+    const response = await axios.get(`${GATEWAY_URL}/api/auth/verify`, {
+      withCredentials: true
+    });
+    if (response.data?.authenticated) {
+      setUser(response.data);
+    }
+    return response.data;
+  }, [setUser]);
+
+  return { token, user, setUser, login, logout, verifyAuth, isAuthenticated: !!user };
 };
 ```
-- Wrapper sobre `authStore` que agrega `isAuthenticated` computado
-- Útil para componentes que necesitan saber si hay sesión activa
+
+| Retorno | Tipo | Descripción |
+|---------|------|-------------|
+| `token` | `string\|null` | Token JWT (para flujo legacy) |
+| `user` | `object\|null` | Datos del usuario autenticado |
+| `setUser` | `Function` | Actualiza el usuario en el store |
+| `login` | `Function` | Login con token + user |
+| `logout` | `Function` | Limpia auth |
+| `verifyAuth` | `Function` | Llama `/api/auth/verify` y setea usuario si autenticado |
+| `isAuthenticated` | `boolean` | `!!user` |

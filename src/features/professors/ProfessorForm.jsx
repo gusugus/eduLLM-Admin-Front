@@ -11,6 +11,7 @@ import { useSnackbar } from 'notistack';
 import { debounce } from 'lodash';
 import FormInput from '../../components/common/FormInput';
 import { useProfessors } from './hooks/useProfessors';
+import uploadService from '../../services/uploadService';
 import { 
   professorValidationRules,
   checkUsernameAvailability,
@@ -30,6 +31,9 @@ const ProfessorForm = () => {
   const [usernameExists, setUsernameExists] = useState(false);
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [foto, setFoto] = useState(null);
+  const [fotoPreview, setFotoPreview] = useState(null);
+  const [fotoUrlActual, setFotoUrlActual] = useState(null);
 
   // Inicializar useForm
   const { control, register, handleSubmit, watch, setValue, getValues, trigger, reset, formState: { errors, isSubmitting }, setError, clearErrors } = useForm({
@@ -38,6 +42,7 @@ const ProfessorForm = () => {
     defaultValues: {
       cedula: '',
       primer_nombre: '',
+      segundo_nombre: '',
       apellido_paterno: '',
       apellido_materno: '',
       correo: '',
@@ -49,8 +54,8 @@ const ProfessorForm = () => {
   // Cargar datos del profesor si es edición
   const { data: professorData, isLoading: isLoadingProfessor } = useProfessorById(isEdit ? id : null);
   console.log(professorData);
-  console.log(isEdit);
-  console.log(professorData?.data);
+  //console.log(isEdit);
+  //console.log(professorData?.data);
   // Resetear el formulario cuando los datos del profesor estén disponibles
   useEffect(() => {
   if (isEdit && professorData) {  // <- Cambia professorData?.data a professorData
@@ -60,14 +65,12 @@ const ProfessorForm = () => {
     reset({
       cedula: prof.cedula || '',
       primer_nombre: prof.primer_nombre || '',
+      segundo_nombre: prof.segundo_nombre || '',
       apellido_paterno: prof.apellido_paterno || '',
       apellido_materno: prof.apellido_materno || '',
-      correo: prof.correo || '',
-      username: prof.username || '',
-      password: ''
+      correo: prof.correo || ''
     });
-    
-    setGeneratedUsername(prof.username || '');
+    setFotoUrlActual(prof.foto_url || null);
     clearErrors();
   }
 }, [isEdit, professorData, reset, clearErrors]);
@@ -162,16 +165,30 @@ const ProfessorForm = () => {
 
   const onSubmit = async (formData) => {
     try {
+      let idUsuario;
+
       if (isEdit) {
         const { username, password, ...updateData } = formData;
-      await updateProfessor.mutateAsync({ id, data: updateData });
-        enqueueSnackbar('Profesor actualizado exitosamente', { variant: 'success' });
-        navigate('/professors');
+        const result = await updateProfessor.mutateAsync({ id, data: updateData });
+        idUsuario = result?.data?.id_usuario;
       } else {
-        await createProfessor.mutateAsync(formData);
-        enqueueSnackbar('Profesor creado exitosamente', { variant: 'success' });
-        navigate('/professors');
+        const result = await createProfessor.mutateAsync(formData);
+        idUsuario = result?.data?.id_usuario;
       }
+
+      if (foto && idUsuario) {
+        try {
+          await uploadService.uploadProfilePhoto(foto, idUsuario);
+          enqueueSnackbar(isEdit ? 'Profesor actualizado con foto' : 'Profesor creado con foto', { variant: 'success' });
+        } catch (uploadErr) {
+          console.error('Error al subir foto:', uploadErr);
+          enqueueSnackbar(isEdit ? 'Profesor actualizado pero error al subir la foto' : 'Profesor creado pero error al subir la foto', { variant: 'warning' });
+        }
+      } else {
+        enqueueSnackbar(isEdit ? 'Profesor actualizado exitosamente' : 'Profesor creado exitosamente', { variant: 'success' });
+      }
+
+      navigate('/professors');
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message || 'Error al guardar';
       setErrorMessage(errorMsg);
@@ -187,16 +204,14 @@ const ProfessorForm = () => {
 
   const fields = {
     personal: [
-      { name: 'cedula', label: 'Cédula', required: true, sm: 12, mask: 'cedula', maxLength: 10, validation: professorValidationRules.cedula },
-      { name: 'primer_nombre', label: 'Primer Nombre', required: true, sm: 12, mask: 'letters', validation: professorValidationRules.primer_nombre,
-        onBlurCustom: () => generateNewUsername()
-      },
+      { name: 'cedula', label: 'Cédula', required: true, sm: 6, mask: 'cedula', maxLength: 10, validation: professorValidationRules.cedula },
+      { name: 'primer_nombre', label: 'Primer Nombre', required: true, sm: 6, mask: 'letters', validation: professorValidationRules.primer_nombre },
+      { name: 'segundo_nombre', label: 'Segundo Nombre', required: false, sm: 12, mask: 'letters', validation: professorValidationRules.segundo_nombre },
       { name: 'apellido_paterno', label: 'Apellido Paterno', required: true, sm: 12, mask: 'letters',
-        validation: professorValidationRules.apellido_paterno,
-        onBlurCustom: () => generateNewUsername()
+        validation: professorValidationRules.apellido_paterno
       },
-      { name: 'apellido_materno', label: 'Apellido Materno', required: false, sm: 12, mask: 'letters', validation: professorValidationRules.apellido_materno },
-      { name: 'correo', label: 'Correo Electrónico', required: true, type: 'email', sm: 12, validation: professorValidationRules.correo }
+      { name: 'apellido_materno', label: 'Apellido Materno', required: false, sm: 6, mask: 'letters', validation: professorValidationRules.apellido_materno },
+      { name: 'correo', label: 'Correo Electrónico', required: true, type: 'email', sm: 6, validation: professorValidationRules.correo }
     ],
     credenciales: !isEdit ? [
       { 
@@ -274,6 +289,39 @@ const ProfessorForm = () => {
                 onBlurCustom={field.onBlurCustom}
               />
             ))}
+
+            <Grid item xs={12}>
+              <Typography variant="h6" color="primary" gutterBottom>Foto de Perfil</Typography>
+              <input
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                style={{ display: 'none' }}
+                id="profile-photo-input"
+                type="file"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    setFoto(file);
+                    setFotoPreview(URL.createObjectURL(file));
+                  }
+                }}
+              />
+              <label htmlFor="profile-photo-input">
+                <Button variant="outlined" component="span">
+                  {foto ? 'Cambiar foto' : 'Seleccionar foto'}
+                </Button>
+              </label>
+              {fotoPreview && (
+                <Box sx={{ mt: 2 }}>
+                  <img src={fotoPreview} alt="Preview" style={{ maxWidth: 150, maxHeight: 150, borderRadius: 8 }} />
+                </Box>
+              )}
+              {!foto && fotoUrlActual && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="caption" color="text.secondary">Foto actual:</Typography>
+                  <img src={fotoUrlActual} alt="Foto actual" style={{ maxWidth: 150, maxHeight: 150, borderRadius: 8, display: 'block' }} />
+                </Box>
+              )}
+            </Grid>
             
             {fields.credenciales.length > 0 && (
               <>

@@ -1,30 +1,51 @@
 import React, { useState } from 'react';
-import { Button, Container, Typography } from '@mui/material';
+import { Button, Container, Typography, Avatar, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { useProfessors } from './hooks/useProfessors';  
+import { useProfessors } from './hooks/useProfessors';
+import professorService from '../../services/professorService';
 import DataTable from '../../components/common/DataTable';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
+import ProfileModal from '../../components/common/ProfileModal';
 
 const ProfessorList = () => {
   const navigate = useNavigate();
-  const { data, isLoading, deleteProfessor } = useProfessors(); // true por defecto
+  const { data, isLoading, deleteProfessor } = useProfessors();
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [selectedProfessor, setSelectedProfessor] = useState(null);
 
-  // 🔥 Asegúrate de que 'data' es el array de profesores
-  // Si 'data' viene envuelto en { success: true, data: [...] }, extrae data.data
   const professors = data?.data || data || [];
+
+  const getInitials = (name) =>
+    name?.split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || '';
 
   const columns = [
     { field: 'id', headerName: 'ID' },
-    { field: 'nombreCompleto', headerName: 'Nombre' },
-    //{ field: 'cedula', headerName: 'Cédula' },
-    //{ field: 'correo', headerName: 'Correo' },
+    {
+      field: 'nombreCompleto', headerName: 'Nombre',
+      render: (row) => (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Avatar src={row.foto_url} sx={{ width: 32, height: 32, fontSize: 13 }}>
+            {getInitials(row.nombreCompleto)}
+          </Avatar>
+          {row.nombreCompleto}
+        </Box>
+      )
+    },
     { field: 'username', headerName: 'Username' },
-    //{ field: 'departamento', headerName: 'Departamento' },
     { field: 'estado', headerName: 'Estado' },
-    //{ field: 'rol', headerName: 'Rol' },
   ];
+
+  const handleView = async (row) => {
+    try {
+      const fullData = await professorService.getById(row.id);
+      setSelectedProfessor(fullData || row);
+    } catch {
+      setSelectedProfessor(row);
+    }
+    setProfileOpen(true);
+  };
 
   const handleDelete = (id) => {
     setSelectedId(id);
@@ -44,18 +65,25 @@ const ProfessorList = () => {
       <Button variant="contained" onClick={() => navigate('/professors/new')}>
         Crear Profesor
       </Button>
-      <DataTable 
-        columns={columns} 
-        data={professors}  
-        onEdit={(row) => navigate(`/professors/${row.id}`)} 
-        onDelete={handleDelete} 
+      <DataTable
+        columns={columns}
+        data={professors}
+        onView={handleView}
+        onEdit={(row) => navigate(`/professors/${row.id}`)}
+        onDelete={handleDelete}
       />
-      <ConfirmDialog 
-        open={openDialog} 
-        title="Eliminar" 
-        message="¿Estás seguro de que deseas eliminar este profesor?" 
-        onConfirm={confirmDelete} 
-        onCancel={() => setOpenDialog(false)} 
+      <ConfirmDialog
+        open={openDialog}
+        title="Eliminar"
+        message="¿Estás seguro de que deseas eliminar este profesor?"
+        onConfirm={confirmDelete}
+        onCancel={() => setOpenDialog(false)}
+      />
+      <ProfileModal
+        open={profileOpen}
+        onClose={() => setProfileOpen(false)}
+        person={selectedProfessor}
+        type="profesor"
       />
     </Container>
   );

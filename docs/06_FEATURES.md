@@ -9,20 +9,10 @@ Listado de profesores con tabla y acciones CRUD.
 **Flujo:**
 1. Llama a `useProfessors()` hook para obtener datos
 2. Extrae `professors` del response (maneja `data.data` o `data` directamente)
-3. Renderiza `DataTable` con columnas: ID, Nombre, Username, Estado
+3. Renderiza `DataTable` con columnas: ID, Nombre (con Avatar + foto si tiene), Username, Estado
 4. Botón "Crear Profesor" → navega a `/professors/new`
 5. Editar → navega a `/professors/:id`
 6. Eliminar → abre `ConfirmDialog` → `deleteProfessor.mutateAsync(id)`
-
-**Columnas visibles:**
-```javascript
-const columns = [
-  { field: 'id', headerName: 'ID' },
-  { field: 'nombreCompleto', headerName: 'Nombre' },
-  { field: 'username', headerName: 'Username' },
-  { field: 'estado', headerName: 'Estado' },
-];
-```
 
 ### ProfessorForm.jsx
 
@@ -35,19 +25,7 @@ Formulario avanzado para crear/editar profesores.
 - **Verificación de username**: debounce de 500ms que consulta `checkUsernameAvailability()`
 - **Validaciones ecuatorianas**: cédula con algoritmo de verificación (10 dígitos + dígito verificador)
 - **Manejo de errores**: modal de error + snackbar de notistack
-- **En submit**: si es crear envía todos los datos; si es editar excluye `username` y `password`
-
-**Campos del formulario:**
-
-| Sección | Campo | Máscara | Validación |
-|---------|-------|---------|------------|
-| Datos Personales | cedula | `cedula` (10 dígitos) | Algoritmo cédula ecuatoriana |
-| | primer_nombre | `letters` | Mínimo 2 caracteres, solo letras |
-| | apellido_paterno | `letters` | Mínimo 2 caracteres, solo letras |
-| | apellido_materno | `letters` | Solo letras (opcional) |
-| | correo | - | Email válido (validator.js) |
-| Credenciales (solo crear) | username | `username` | Mínimo 3, alfanumérico + _- |
-| | password | - | Mínimo 6 caracteres |
+- **En submit**: crear envía todos los datos; editar solo envía los campos visibles (excluye `username` y `password` del body)
 
 ### useProfessors.js (Hook)
 
@@ -66,42 +44,66 @@ useProfessors({ enableList = true } = {})
 | `updateProfessor` | `Mutation` | `mutateAsync({ id, data })` |
 | `deleteProfessor` | `Mutation` | `mutateAsync(id)` |
 
-**Detalles:**
-- `enableList`: flag que controla si se ejecuta la query de listado (útil en ProfessorForm donde solo se necesita getById)
-- Todas las mutations invalidan el cache `['professors']` on success
-- `useProfessorById` se ejecuta solo si `id` es truthy (`enabled: !!id`)
-
 ---
 
-## 6.2 Estudiantes — ⚠️ Stub
+## 6.2 Estudiantes — ✅ Funcional
 
 ### StudentList.jsx
-- Columnas: ID, Nombre
+- Columnas: ID, Nombre, Cédula, Correo, Estado
 - Botón Crear → `navigate('new')`
 - Editar/Eliminar con DataTable + ConfirmDialog
 
 ### StudentForm.jsx
-- Formulario mínimo con un solo campo "Nombre"
-- Usa `useStudents()` hook
-- No tiene validaciones ni lógica de edición avanzada
+- Formulario completo con validaciones (cedula, email, username, password)
+- Detección automática de modo crear/editar
+- Carga de datos en edición vía `useStudentById(id)`
 
 ### useStudents.js
-- Solo query de listado (`getAll`)
-- **Sin** `getById` (no se usa en el form actual)
-- Mutations: create, update, delete (todas apuntan a backend stub que retorna mock)
+- Queries: `getAll`, `getById`
+- Mutations: `create`, `update`, `delete` con invalidación de caché
 
 ---
 
-## 6.3 Materias — ⚠️ Stub
+## 6.3 Materias — ✅ Funcional
 
 ### SubjectList.jsx
-- Columnas: ID, Nombre
-- Misma estructura que StudentList
+- Columnas: ID, Nombre, Descripción, Estado
+- Botón Crear → `navigate('new')`
 
 ### SubjectForm.jsx
-- Formulario mínimo con un solo campo "Nombre"
-- Usa `useSubjects()` hook
-- Misma estructura que StudentForm
+- Formulario con campos: nombre, descripción
+- Detección de modo crear/editar
+- Carga de datos en edición
 
 ### useSubjects.js
-- Misma estructura que useStudents (listado + mutations básicas)
+- Queries: `getAll`, `getById`
+- Mutations: `create`, `update`, `delete`
+
+---
+
+## 6.4 Asignaciones — ✅ Funcional
+
+### AssignmentsPage.jsx
+Página con dos tabs:
+- **Profesor → Materia**: asigna un profesor a una o varias materias
+- **Estudiantes → Materia**: asigna múltiples estudiantes a una materia
+
+### AssignProfessorSubject.jsx
+- Select de profesor + multiselect de materias
+- Al seleccionar profesor, carga las materias existentes
+- Botón "Guardar" envía lote de asignaciones
+
+### AssignStudentSubject.jsx
+- Select de materia + multiselect de estudiantes
+- Al seleccionar materia, carga los estudiantes existentes
+- Botón "Guardar" envía lote de asignaciones
+
+### useAssignments.js
+| Función | Descripción |
+|---------|-------------|
+| `assignProfessorToSubject(data)` | Asigna profesor a materia(s) |
+| `listProfessorSubjects()` | Lista asignaciones profesor-materia |
+| `removeProfessorSubject(id)` | Elimina una asignación profesor-materia |
+| `assignStudentsToSubject(data)` | Asigna estudiantes a una materia |
+| `listStudentSubjects()` | Lista asignaciones estudiante-materia |
+| `removeStudentSubject(id)` | Elimina una asignación estudiante-materia |

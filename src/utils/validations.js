@@ -1,19 +1,12 @@
 import validator from 'validator';
+import api from '../services/api';
 
-// Obtener la URL base de la API
-const API_URL = import.meta.env.VITE_API_URL;
-
-// Validación asíncrona de username
 export const checkUsernameAvailability = async (username, excludeUserId = null) => {
   try {
-    const response = await fetch(`${API_URL}/users/check-username`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ username, excludeUserId: excludeUserId ? parseInt(excludeUserId) : null })
+    const { data } = await api.post('/users/check-username', {
+      username,
+      excludeUserId: excludeUserId ? parseInt(excludeUserId) : null
     });
-    const data = await response.json();
     return { available: data.available, message: data.message };
   } catch (error) {
     console.error('Error checking username:', error);
@@ -21,25 +14,15 @@ export const checkUsernameAvailability = async (username, excludeUserId = null) 
   }
 };
 
-// Obtener username sugerido del backend (siempre devuelve uno disponible)
 export const suggestUsername = async (primerNombre, apellidoPaterno) => {
   try {
-    const response = await fetch(`${API_URL}/users/suggest-username`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ primerNombre, apellidoPaterno })
+    const { data } = await api.post('/users/suggest-username', {
+      primerNombre,
+      apellidoPaterno
     });
-    const data = await response.json();
-    return { 
-      username: data.username, 
-      isNew: data.isNew,
-      exists: data.exists 
-    };
+    return { username: data.username, isNew: data.isNew, exists: data.exists };
   } catch (error) {
     console.error('Error suggesting username:', error);
-    // Fallback: generar localmente
     const fallback = `${primerNombre}${apellidoPaterno}`.toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
@@ -124,6 +107,12 @@ export const studentValidationRules = {
       return true;
     }
   },
+  segundo_nombre: {
+    validate: (value) => {
+      if (value && !onlyLetters(value)) return 'El nombre solo debe contener letras';
+      return true;
+    }
+  },
   correo: {
     required: 'El correo es requerido',
     validate: (value) => {
@@ -139,24 +128,6 @@ export const studentValidationRules = {
       message: 'La contraseña debe tener al menos 6 caracteres'
     }
   },
-  codigo_estudiante: {
-    validate: (value) => {
-      if (value && !/^[a-zA-Z0-9_-]+$/.test(value)) return 'Solo letras, números, guiones';
-      return true;
-    }
-  },
-  grado: {
-    validate: (value) => {
-      if (value && !/^[a-zA-Z0-9\s]+$/.test(value)) return 'Caracteres no válidos';
-      return true;
-    }
-  },
-  grupo: {
-    validate: (value) => {
-      if (value && value.length > 20) return 'Máximo 20 caracteres';
-      return true;
-    }
-  }
 };
 
 export const professorValidationRules = {
@@ -191,6 +162,12 @@ export const professorValidationRules = {
   apellido_materno: {
     validate: (value) => {
       if (value && !onlyLetters(value)) return 'El apellido solo debe contener letras';
+      return true;
+    }
+  },
+  segundo_nombre: {
+    validate: (value) => {
+      if (value && !onlyLetters(value)) return 'El nombre solo debe contener letras';
       return true;
     }
   },

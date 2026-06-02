@@ -2,12 +2,14 @@ import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Container, Typography, Button, Box,
-  Grid, Paper, CircularProgress
+  Grid, Paper, CircularProgress,
+  FormControl, InputLabel, Select, MenuItem, FormHelperText
 } from '@mui/material';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
 import FormInput from '../../components/common/FormInput';
 import { useSubjects } from './hooks/useSubjects';
+import { useGrados } from '../../features/grados/hooks/useGrados';
 
 const SubjectsForm = () => {
   const { id } = useParams();
@@ -17,13 +19,15 @@ const SubjectsForm = () => {
 
   const isEdit = !!id;
 
+  const { data: grados, isLoading: isLoadingGrados } = useGrados();
+
   const { control, register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm({
     mode: 'onBlur',
     reValidateMode: 'onChange',
     defaultValues: {
       nombre: '',
       descripcion: '',
-      nombre_normalizado: ''
+      id_grado: ''
     }
   });
 
@@ -34,20 +38,20 @@ const SubjectsForm = () => {
       reset({
         nombre: subjectData.nombre || '',
         descripcion: subjectData.descripcion || '',
-        nombre_normalizado: subjectData.nombre_normalizado || ''
+        id_grado: subjectData.id_grado || ''
       });
     }
   }, [isEdit, subjectData, reset]);
 
   const onSubmit = async (formData) => {
     try {
+      let response;
       if (isEdit) {
-        await updateSubject.mutateAsync({ id, data: formData });
-        enqueueSnackbar('Materia actualizada exitosamente', { variant: 'success' });
+        response = await updateSubject.mutateAsync({ id, data: formData });
       } else {
-        await createSubject.mutateAsync(formData);
-        enqueueSnackbar('Materia creada exitosamente', { variant: 'success' });
+        response = await createSubject.mutateAsync(formData);
       }
+      enqueueSnackbar(response?.message || (isEdit ? 'Materia actualizada exitosamente' : 'Materia creada exitosamente'), { variant: 'success' });
       navigate('/subjects');
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message || 'Error al guardar';
@@ -96,14 +100,35 @@ const SubjectsForm = () => {
               control={control}
               xs={12}
             />
-            <FormInput
-              name="nombre_normalizado"
-              label="Nombre normalizado (para búsqueda)"
-              register={register}
-              errors={errors}
-              control={control}
-              xs={12}
-            />
+
+            <Grid item xs={12}>
+              <FormControl fullWidth error={!!errors.id_grado}>
+                <InputLabel id="grado-label">Grado</InputLabel>
+                <Controller
+                  name="id_grado"
+                  control={control}
+                  rules={{ required: 'El curso es obligatorio' }}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      labelId="grado-label"
+                      label="Grado"
+                      disabled={isLoadingGrados}
+                    >
+                      <MenuItem value="">
+                        <em>Seleccione un curso</em>
+                      </MenuItem>
+                      {(grados || []).map((g) => (
+                        <MenuItem key={g.id} value={g.id}>
+                          {g.nombre_completo}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  )}
+                />
+                <FormHelperText>{errors.id_grado?.message}</FormHelperText>
+              </FormControl>
+            </Grid>
 
             <Grid item xs={12}>
               <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
