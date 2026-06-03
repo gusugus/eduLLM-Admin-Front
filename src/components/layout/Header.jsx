@@ -38,7 +38,7 @@ const Header = () => {
           </svg>
         </div>
         <span className="text-white font-semibold text-base tracking-tight">
-          eduLLM <span className="text-blue-200 font-normal">Admin</span>
+          EduQuiz <span className="text-blue-200 font-normal">Admin</span>
         </span>
       </div>
 
