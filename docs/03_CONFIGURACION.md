@@ -41,33 +41,59 @@ EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 ```
 
+## TailwindCSS (`tailwind.config.js`)
+
+```javascript
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  important: '#root',     // Tailwind gana sobre estilos MUI en conflictos de especificidad
+  corePlugins: {
+    preflight: false,     // Desactivado: MUI CssBaseline ya provee el reset CSS
+  },
+  theme: { extend: { /* colores, sombras, fuentes */ } },
+  plugins: [],
+};
+```
+
+**Decisiones de configuración:**
+- `important: '#root'` — Envuelve todas las utilidades con el selector `#root`, elevando su especificidad para que ganen a los estilos generados por Emotion (MUI) sin necesidad de `!important`.
+- `preflight: false` — MUI ya aplica su propio reset CSS vía `<CssBaseline />`. Activar ambos causaría conflictos visuales.
+
+## PostCSS (`postcss.config.js`)
+
+```javascript
+export default {
+  plugins: { tailwindcss: {}, autoprefixer: {} },
+};
+```
+
+## CSS Base (`src/index.css`)
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    background-color: #f8fafc;
+  }
+}
+```
+
+Importado en `main.jsx` como `import './index.css'` antes de los providers.
+
 ## Providers Pipeline (`main.jsx`)
 
 Orden de providers que envuelven la aplicación:
 
-1. **React.StrictMode** — Detección de problemas en desarrollo
-2. **QueryClientProvider** — React Query (caché, fetching, mutations)
-3. **ThemeProvider** — Tema MUI personalizado (`theme.js`)
-4. **CssBaseline** — Reset CSS de MUI
-5. **SnackbarProvider** — Notificaciones toast (notistack, máx 3)
-
-### Código real (`src/main.jsx`):
-```javascript
-const queryClient = new QueryClient();
-
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <SnackbarProvider maxSnack={3}>
-          <App />
-        </SnackbarProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
-  </React.StrictMode>
-);
-```
+1. **CSS global** — `import './index.css'` (Tailwind directives + body font/bg)
+2. **React.StrictMode** — Detección de problemas en desarrollo
+3. **QueryClientProvider** — React Query (caché, fetching, mutations)
+4. **ThemeProvider** — Tema MUI personalizado (`theme.js`)
+5. **CssBaseline** — Reset CSS de MUI
+6. **SnackbarProvider** — Notificaciones toast (notistack, máx 3)
 
 > **Nota**: No hay lógica de redirect en `main.jsx`. La verificación de autenticación se hace en `AuthGate` (App.jsx) mediante `GET /api/auth/verify` con cookies.
 
@@ -76,7 +102,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 ```javascript
 const theme = createTheme({
   palette: {
-    primary:   { main: '#1976d2' },  // Azul
+    primary:   { main: '#1976d2' },  // Azul (usado en componentes MUI internos)
     secondary: { main: '#dc004e' },  // Rojo/Rosa
   },
   breakpoints: {
@@ -84,3 +110,5 @@ const theme = createTheme({
   },
 });
 ```
+
+> El tema MUI sigue vigente para los componentes que usan `sx` prop o el sistema de diseño de MUI (DataTable, FormInput, ConfirmDialog). Los componentes migrados a Tailwind (LoginForm, DashboardCards, Sidebar visual) ya no dependen de este tema para sus colores.

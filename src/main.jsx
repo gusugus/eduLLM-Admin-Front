@@ -6,6 +6,7 @@ import { SnackbarProvider } from 'notistack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App';
 import theme from './theme';
+import './index.css';
 
 
 const queryClient = new QueryClient({
