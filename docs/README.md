@@ -1,7 +1,7 @@
 # eduLLM Admin — Frontend: Índice de Documentación
 
 > Aplicación SPA de administración para la plataforma eduLLM.
-> Stack: **React 18 + Vite + Material UI 5 + React Query + Zustand + React Hook Form**
+> Stack: **React 18 + Vite + Material UI 5 + TailwindCSS 3 + React Query + Zustand + React Hook Form**
 
 ---
 

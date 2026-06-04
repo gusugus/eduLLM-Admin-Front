@@ -8,7 +8,8 @@ Panel de administración frontend SPA que gestiona **Profesores, Estudiantes, Ma
 |------|-----------|
 | UI Framework | React 18 |
 | Build Tool | Vite 5 |
-| Componentes | Material UI 5 |
+| Componentes UI | Material UI 5 |
+| Estilos utilitarios | TailwindCSS 3 (híbrido con MUI) |
 | Estado servidor | TanStack React Query 5 |
 | Estado cliente | Zustand 4 (con persist) |
 | Formularios | React Hook Form 7 |

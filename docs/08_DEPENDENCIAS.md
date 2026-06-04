@@ -27,6 +27,9 @@
 |---------|---------|-----|
 | `vite` | ^5.0.10 | Build tool + dev server |
 | `@vitejs/plugin-react` | ^4.2.1 | Plugin React para Vite |
+| `tailwindcss` | ^3.x | Framework CSS utilitario (híbrido con MUI) |
+| `postcss` | latest | Procesador CSS requerido por Tailwind |
+| `autoprefixer` | latest | Añade prefijos de vendor CSS automáticamente |
 
 ## Jerarquía de Importaciones
 

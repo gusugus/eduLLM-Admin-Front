@@ -1,7 +1,7 @@
 # eduLLM Admin — Frontend (FRONT)
 
 > Aplicación de administración SPA para la plataforma eduLLM.  
-> Stack: **React 18 + Vite + Material UI 5 + React Query + Zustand**
+> Stack: **React 18 + Vite + Material UI 5 + TailwindCSS 3 + React Query + Zustand**
 
 ---
 
@@ -62,11 +62,14 @@ FRONT/
 ├── vite.config.js                     # Vite: React plugin, port 8001
 ├── Dockerfile                         # Multi-stage: Vite build → nginx
 ├── package.json                       # Dependencias
-├── .env                               # VITE_API_URL
+├── tailwind.config.js                 # TailwindCSS v3: content, important '#root', preflight off
+├── postcss.config.js                  # PostCSS: tailwindcss + autoprefixer
+├── .env                               # VITE_API_URL, VITE_LOGIN_URL, VITE_GATEWAY_URL
 ├── .gitignore
 ├── public/                            # (vacío, assets estáticos)
 └── src/
-    ├── main.jsx                       # Mount React + Providers
+    ├── main.jsx                       # Mount React + Providers + import index.css
+    ├── index.css                      # @tailwind directives + body font/bg
     ├── App.jsx                        # BrowserRouter + Layout + Routes
     ├── theme.js                       # MUI theme (primary, secondary, breakpoints)
     │
@@ -156,11 +159,12 @@ Accesible en código como `import.meta.env.VITE_API_URL`.
 
 La aplicación envuelve todo en estos providers, en este orden:
 
-1. **React.StrictMode** — Detección de problemas en desarrollo
-2. **QueryClientProvider** — React Query para caché y fetching
-3. **ThemeProvider** — Tema MUI personalizado
-4. **CssBaseline** — Reset CSS de MUI
-5. **SnackbarProvider** — Notificaciones toast (notistack, máx 3)
+1. **CSS global** — `import './index.css'` (Tailwind + body font y fondo)
+2. **React.StrictMode** — Detección de problemas en desarrollo
+3. **QueryClientProvider** — React Query para caché y fetching
+4. **ThemeProvider** — Tema MUI personalizado
+5. **CssBaseline** — Reset CSS de MUI
+6. **SnackbarProvider** — Notificaciones toast (notistack, máx 3)
 
 ---
 
@@ -172,18 +176,19 @@ Estructura principal de la app:
 
 ```
 ┌──────────────────────────────────────┐
-│           AppBar (Header)            │
+│     AppBar slate-900 (Header)        │
 ├──────────┬───────────────────────────┤
 │          │                           │
-│ Sidebar  │     Main Content          │
-│ (Drawer) │     ({children})          │
-│ 240px    │                           │
+│ Sidebar  │   Main Content            │
+│ slate-900│   fondo slate-50          │
+│  240px   │   p-6 max-w-screen-xl     │
 │          │                           │
 └──────────┴───────────────────────────┘
 ```
 
 - **Responsive**: En mobile, el Drawer es `temporary` (se abre con botón hamburguesa). En desktop es `permanent`.
-- Ancho del drawer: `240px`.
+- AppBar y Drawer: fondo `#0f172a` (slate-900), sin elevación, borde inferior sutil.
+- Contenido principal: fondo `#f8fafc` (slate-50), padding Tailwind `p-6`, max-width `max-w-screen-xl`.
 
 ### 7.2 DataTable (`components/common/DataTable.jsx`)
 
@@ -398,6 +403,9 @@ Misma estructura que professorService pero apuntan a `/students` y `/subjects`. 
 | lodash              | ^4.17.21 | Utilidades (debounce)                |
 | vite                | ^5.0.10  | Build tool + dev server              |
 | @vitejs/plugin-react| ^4.2.1   | Plugin React para Vite               |
+| tailwindcss         | ^3.x     | Framework CSS utilitario (devDep)    |
+| postcss             | latest   | Procesador CSS (devDep)              |
+| autoprefixer        | latest   | Prefijos vendor CSS (devDep)         |
 
 ---
 
@@ -494,7 +502,7 @@ CMD ["nginx", "-g", "daemon off;"]
 ```javascript
 {
   palette: {
-    primary:   { main: '#1976d2' },  // Azul MUI
+    primary:   { main: '#1976d2' },  // Azul MUI (usado en componentes MUI internos)
     secondary: { main: '#dc004e' },  // Rojo/Rosa
   },
   breakpoints: {
@@ -503,10 +511,17 @@ CMD ["nginx", "-g", "daemon off;"]
 }
 ```
 
-### Colores del Dashboard Cards:
+> Los componentes migrados a Tailwind (LoginForm, DashboardCards, Sidebar) no dependen de este tema para sus colores.
 
-| Tarjeta       | Color     |
-|--------------|-----------|
-| Profesores   | `#1976d2` (azul) |
-| Estudiantes  | `#2e7d32` (verde) |
-| Materias     | `#ed6c02` (naranja) |
+### Paleta de colores del diseño Tailwind:
+
+| Elemento | Color / Token Tailwind |
+|---------|------------------------|
+| AppBar y Drawer | `#0f172a` (slate-900) |
+| Fondo principal | `#f8fafc` (slate-50) |
+| Acción primaria | `#2563eb` (blue-600) |
+| Card Profesores | `blue-500 → blue-600` |
+| Card Estudiantes | `emerald-500 → emerald-600` |
+| Card Materias | `amber-500 → orange-500` |
+| Card Grados | `violet-500 → purple-600` |
+| Ítem sidebar activo | `rgba(59,130,246,0.25)` |

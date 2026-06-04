@@ -203,7 +203,13 @@ En `src/routes/AppRoutes.jsx` ya existen las rutas para students y subjects:
 
 ## Paso 6: Actualizar Sidebar
 
-En `src/components/layout/Sidebar.jsx` ya existen los ítems de navegación para estudiantes y materias.
+En `src/components/layout/Sidebar.jsx` agregar el nuevo ítem al array `menuItems`:
+
+```javascript
+{ text: 'NuevaEntidad', icon: <NuevoIcono />, path: '/nueva-ruta' }
+```
+
+El componente usa `useLocation()` para resaltar automáticamente el ítem activo cuando `pathname === item.path`, por lo que no se requiere ninguna configuración adicional.
 
 ## Paso 7: Validaciones (Opcional)
 

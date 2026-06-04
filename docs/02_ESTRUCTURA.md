@@ -6,11 +6,14 @@ FRONT/
 ├── vite.config.js                     # Vite: React plugin, port 8001
 ├── Dockerfile                         # Multi-stage: Vite build → nginx
 ├── package.json                       # Dependencias y scripts
+├── tailwind.config.js                 # TailwindCSS v3: content paths, important '#root', preflight off
+├── postcss.config.js                  # PostCSS: tailwindcss + autoprefixer plugins
 ├── .env                               # VITE_API_URL, VITE_LOGIN_URL, VITE_GATEWAY_URL
 ├── .gitignore
 ├── public/                            # (vacío, assets estáticos)
 └── src/
-    ├── main.jsx                       # Mount React + Providers (QueryClient, Theme, Snackbar)
+    ├── main.jsx                       # Mount React + Providers (QueryClient, Theme, Snackbar) + import index.css
+    ├── index.css                      # @tailwind base/components/utilities + body font
     ├── App.jsx                        # BrowserRouter → AuthGate (verify → login o app)
     ├── theme.js                       # MUI theme (primary: #1976d2, secondary: #dc004e)
     │

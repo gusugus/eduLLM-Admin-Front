@@ -6,12 +6,12 @@ Estructura principal de la aplicación con AppBar fijo + Drawer lateral.
 
 ```
 ┌──────────────────────────────────────┐
-│         AppBar (Header)              │
+│    AppBar slate-900 (Header)         │
 ├──────────┬───────────────────────────┤
 │          │                           │
-│ Sidebar  │     Main Content          │
-│ (Drawer) │     ({children})          │
-│ 240px    │                           │
+│ Sidebar  │   Main Content            │
+│ slate-900│   fondo slate-50          │
+│  240px   │   padding p-6 max-w-xl    │
 │          │                           │
 └──────────┴───────────────────────────┘
 ```
@@ -20,6 +20,11 @@ Estructura principal de la aplicación con AppBar fijo + Drawer lateral.
 - Mobile (`< sm`): Drawer `temporary`, se abre con botón hamburguesa
 - Desktop (`>= sm`): Drawer `permanent`, siempre visible
 - Ancho del drawer: `240px`
+
+**Estilo visual:**
+- AppBar y Drawer comparten fondo `#0f172a` (slate-900), sin elevación
+- Contenido principal: fondo `#f8fafc` (slate-50), padding `p-6`, `max-w-screen-xl`
+- El AppBar usa `elevation={0}` con borde inferior sutil (`rgba(255,255,255,0.07)`)
 
 ### Props
 | Prop | Tipo | Descripción |
@@ -133,14 +138,19 @@ Componente de redirección con cuenta regresiva. Muestra un mensaje y redirige d
 ## 5.7 Header (`components/layout/Header.jsx`)
 
 Barra superior dentro del AppBar. Muestra:
-- Título "eduLLM Admin" (Typography h6)
-- Avatar con menú desplegable con opción **Salir** (limpia localStorage y redirige a login)
+- Ícono SVG de libro + texto "eduLLM **Admin**" (con "Admin" en azul claro)
+- Avatar con las **iniciales del usuario** (`user.username.slice(0,2).toUpperCase()`). Fallback: `AD`
+- Menú desplegable al hacer clic en el avatar:
+  - Info del usuario (username y label "Sesión activa")
+  - Botón "Cerrar sesión" en rojo, llama logout + `POST /api/auth/logout`
+
+**Dependencia:** Usa `useAuth().user` para obtener el username activo.
 
 ---
 
 ## 5.8 Sidebar (`components/layout/Sidebar.jsx`)
 
-Menú de navegación lateral con ListItemButtons:
+Menú de navegación lateral oscuro (slate-900) con `ListItemButton` de MUI.
 
 | Ítem | Icono | Ruta |
 |------|-------|------|
@@ -148,30 +158,70 @@ Menú de navegación lateral con ListItemButtons:
 | Profesores | `People` | `/professors` |
 | Estudiantes | `School` | `/students` |
 | Materias | `Book` | `/subjects` |
+| Grados | `Layers` | `/grados` |
 | Asignaciones | `Assignment` | `/assignments` |
+
+**Estado activo:** usa `useLocation()` para detectar la ruta actual.
+- Ítem activo: fondo `rgba(59,130,246,0.25)`, texto blanco, icono azul, indicador lateral azul
+- Ítem inactivo: texto slate-400, hover con fondo `rgba(255,255,255,0.06)`
+- Footer con versión `eduLLM Admin v1.0` separado por borde slate-700
 
 ---
 
 ## 5.9 DashboardCards (`components/layout/DashboardCards.jsx`)
 
-Tarjetas de resumen en el Dashboard. Cada tarjeta muestra un conteo.
+Grid de 4 tarjetas de resumen con gradientes. Cada tarjeta muestra el conteo total de la entidad.
 
-| Tarjeta | Color | Fuente de datos |
-|---------|-------|----------------|
-| Profesores | `#1976d2` (azul) | `useProfessors()` |
-| Estudiantes | `#2e7d32` (verde) | `useStudents()` |
-| Materias | `#ed6c02` (naranja) | `useSubjects()` |
+| Tarjeta | Gradiente | Fuente de datos |
+|---------|-----------|----------------|
+| Profesores | `blue-500 → blue-600` | `useProfessors()` |
+| Estudiantes | `emerald-500 → emerald-600` | `useStudents()` |
+| Materias | `amber-500 → orange-500` | `useSubjects()` |
+| Grados | `violet-500 → purple-600` | `useGrados()` |
+
+**Layout:** `grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5`
+
+Cada tarjeta incluye ícono SVG en área semi-transparente, número grande, label y subtítulo "Total registrados". Efecto hover con elevación de sombra y translación vertical sutil.
+
+---
+
+---
+
+## 5.A Sistema de Diseño Híbrido (MUI + TailwindCSS)
+
+El proyecto usa un enfoque **híbrido** desde la versión con Tailwind v3:
+
+| Tipo de componente | Herramienta | Razón |
+|--------------------|-------------|-------|
+| Layout contenedores, fondos, espaciado de páginas | **Tailwind** | Utilidades más rápidas y expresivas |
+| LoginForm | **Tailwind** | Migrado completamente — no tenía dependencia de MUI |
+| DashboardCards | **Tailwind** | Cards visuales sin comportamiento interactivo complejo |
+| Sidebar (visual) | **Tailwind + MUI sx** | MUI `ListItemButton` para navegación, Tailwind para el shell y estilos hover/activo vía `sx` |
+| Header | **Tailwind + MUI** | MUI `Avatar`, `Menu` para comportamiento; Tailwind para branding |
+| DataTable | **MUI** | Tabla compleja con columnas dinámicas |
+| FormInput, ConfirmDialog | **MUI** | Componentes interactivos con accesibilidad MUI |
+| ProfessorForm, StudentForm, SubjectForm | **MUI** | Formularios con Grid, Paper, Alert, Dialog |
+
+**Regla:** usar Tailwind `className` para layout y visual; MUI `sx` o componentes MUI para comportamiento interactivo.
 
 ---
 
 ## 5.10 LoginForm (`components/auth/LoginForm.jsx`)
 
-Formulario de login embebido. Llama `POST /api/auth/login` con credenciales y recibe cookie HttpOnly del gateway.
+Formulario de login embebido. Llama `POST /api/auth/login` con credenciales y recibe cookie HttpOnly del gateway. **Migrado completamente a TailwindCSS** (sin dependencias de MUI).
+
+### Diseño
+- Fondo: gradiente `from-slate-100 to-blue-50`
+- Card: `bg-white rounded-2xl shadow-lg border border-slate-100`
+- Área de marca: ícono SVG de libro en `bg-blue-600 rounded-2xl` + título + subtítulo
+- Inputs: bordes `border-slate-200`, focus ring `ring-2 ring-blue-500`
+- Botón: `bg-blue-600`, hover `bg-blue-700`, disabled con `opacity-60`
+- Footer: copyright con año dinámico
 
 ### Estados
-- **Cargando**: botón muestra "Iniciando sesión..."
-- **Error**: snackbar con mensaje del servidor
-- **Éxito**: snackbar de bienvenida + navega a `/dashboard`
+- **Cargando**: botón muestra spinner SVG animado + "Iniciando sesión..."
+- **Error**: snackbar con mensaje del servidor (notistack)
+- **Éxito**: snackbar de bienvenida + `navigate('/')`
 
 ### Props
 Sin props (componente autónomo con estado interno).
