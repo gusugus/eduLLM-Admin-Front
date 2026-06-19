@@ -24,10 +24,6 @@ function LoginForm() {
         password
       }, { withCredentials: true });
 
-      if (response.data.token) {
-        localStorage.setItem('jwtToken', response.data.token);
-      }
-
       setUser(response.data);
       enqueueSnackbar(`✅ Bienvenido ${response.data.username}!`, { variant: 'success' });
       navigate('/');

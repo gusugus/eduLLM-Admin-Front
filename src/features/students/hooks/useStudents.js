@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import studentService from '../../../services/studentService';
 
@@ -5,10 +6,13 @@ const QUERY_KEY = 'students';
 
 export const useStudents = ({ enableList = true } = {}) => {
   const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [search, setSearch] = useState('');
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: [QUERY_KEY],
-    queryFn: () => studentService.getAll(),
+    queryKey: [QUERY_KEY, page, limit, search],
+    queryFn: () => studentService.getAll({ page, limit, search }),
     retry: 1,
     enabled: enableList,
   });
@@ -48,6 +52,12 @@ export const useStudents = ({ enableList = true } = {}) => {
     isLoading,
     error,
     refetch,
+    page,
+    limit,
+    search,
+    setPage,
+    setLimit,
+    setSearch,
     useStudentById,
     createStudent: createMutation,
     updateStudent: updateMutation,

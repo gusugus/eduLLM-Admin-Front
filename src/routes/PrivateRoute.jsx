@@ -1,10 +1,11 @@
 import React from 'react';
+import useAuthStore from '../stores/authStore';
+import { getLoginUrl } from '../utils/auth';
 
 const PrivateRoute = ({ children }) => {
-  const token = localStorage.getItem('jwtToken');
-  if (!token) {
-    const loginUrl = import.meta.env.VITE_LOGIN_URL || `${import.meta.env.VITE_API_URL}login`;
-    window.location.href = loginUrl;
+  const user = useAuthStore((s) => s.user);
+  if (!user) {
+    window.location.href = getLoginUrl();
     return null;
   }
   return children;

@@ -3,10 +3,12 @@ import { useProfessors } from '../../features/professors/hooks/useProfessors';
 import { useStudents } from '../../features/students/hooks/useStudents';
 import { useSubjects } from '../../features/subjects/hooks/useSubjects';
 import { useGrados } from '../../features/grados/hooks/useGrados';
+import { Grid, Card, CardContent, Typography } from '@mui/material';
+import { useDashboardStats } from '../../hooks/useDashboardStats';
 
 const cards = [
   {
-    key: 'professors',
+    key: 'profesores',
     title: 'Profesores',
     gradient: 'from-blue-500 to-blue-600',
     iconBg: 'bg-blue-400/30',
@@ -19,7 +21,7 @@ const cards = [
     path: '/professors',
   },
   {
-    key: 'students',
+    key: 'estudiantes',
     title: 'Estudiantes',
     gradient: 'from-emerald-500 to-emerald-600',
     iconBg: 'bg-emerald-400/30',
@@ -34,7 +36,7 @@ const cards = [
     path: '/students',
   },
   {
-    key: 'subjects',
+    key: 'materias',
     title: 'Materias',
     gradient: 'from-amber-500 to-orange-500',
     iconBg: 'bg-amber-400/30',
@@ -62,17 +64,7 @@ const cards = [
 ];
 
 const DashboardCards = () => {
-  const { data: professors = [] } = useProfessors();
-  const { data: students = [] } = useStudents();
-  const { data: subjects = [] } = useSubjects();
-  const { data: grados = [] } = useGrados();
-
-  const counts = {
-    professors: professors.length,
-    students: students.length,
-    subjects: subjects.length,
-    grados: grados.length,
-  };
+  const { stats, isLoading } = useDashboardStats();
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
@@ -86,7 +78,7 @@ const DashboardCards = () => {
             <div>
               <p className="text-white/70 text-sm font-medium mb-1">{card.title}</p>
               <p className="text-4xl font-bold tracking-tight">
-                {counts[card.key] ?? '—'}
+                {isLoading ? '...' : (stats[card.key] ?? 0)}
               </p>
             </div>
             <div className={`${card.iconBg} rounded-xl p-2.5`}>

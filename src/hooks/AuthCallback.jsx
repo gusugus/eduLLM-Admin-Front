@@ -14,11 +14,9 @@ function AuthCallback() {
     const token = params.get('token');
 
     if (token) {
-      // Guardar token en localStorage del frontend
-      localStorage.setItem('jwtToken', token);
       enqueueSnackbar('✅ Login exitoso!', { variant: 'success' });
       
-      // Redirigir al dashboard
+      // Redirigir al dashboard (la cookie de sesión ya la estableció el Gateway)
       navigate('/dashboard');
     } else {
       enqueueSnackbar('❌ Error en la autenticación', { variant: 'error' });

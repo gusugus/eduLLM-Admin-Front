@@ -17,16 +17,17 @@ const columns = [
 
 const SubjectsList = () => {
   const navigate = useNavigate();
-  const { data, isLoading, deleteSubject } = useSubjects();
+  const { data, isLoading, deleteSubject, page, limit, search, setPage, setLimit, setSearch } = useSubjects();
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [viewOpen, setViewOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState(null);
 
-  const subjects = (data?.data || data || []).map((s) => ({
+  const subjects = (data?.data || []).map((s) => ({
     ...s,
     grado_nombre: s.grado?.nombre_completo || '-'
   }));
+  const pagination = data?.pagination || null;
 
   const handleView = async (row) => {
     try {
@@ -58,6 +59,12 @@ const SubjectsList = () => {
       <DataTable
         columns={columns}
         data={subjects}
+        pagination={pagination}
+        onPageChange={setPage}
+        onRowsPerPageChange={(newLimit) => { setLimit(newLimit); setPage(1); }}
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Buscar por nombre o grado..."
         onView={handleView}
         onEdit={(row) => navigate(`/subjects/${row.id}`)}
         onDelete={handleDelete}
@@ -74,13 +81,11 @@ const SubjectsList = () => {
         onClose={() => setViewOpen(false)}
         title="Detalle de Materia"
         fields={[
-          { label: 'ID', value: selectedSubject?.id },
           { label: 'Nombre', value: selectedSubject?.nombre },
           { label: 'Grado', value: selectedSubject?.grado?.nombre_completo || '-' },
           { label: 'Descripción', value: selectedSubject?.descripcion },
           { label: 'Nombre Normalizado', value: selectedSubject?.nombre_normalizado },
         ]}
-        status={selectedSubject?.id_estado}
       />
     </Container>
   );

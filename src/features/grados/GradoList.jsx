@@ -12,17 +12,19 @@ const columns = [
   { field: 'grado', headerName: 'Grado' },
   { field: 'paralelo', headerName: 'Paralelo' },
   { field: 'nombre_completo', headerName: 'Nombre Completo' },
+  { field: 'estado', headerName: 'Estado' },
 ];
 
 const GradosList = () => {
   const navigate = useNavigate();
-  const { data, isLoading, deleteGrado } = useGrados();
+  const { data, isLoading, deleteGrado, page, limit, search, setPage, setLimit, setSearch } = useGrados();
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [viewOpen, setViewOpen] = useState(false);
   const [selectedGrado, setSelectedGrado] = useState(null);
 
-  const grados = data?.data || data || [];
+  const grados = data?.data || [];
+  const pagination = data?.pagination || null;
 
   const handleView = async (row) => {
     try {
@@ -54,6 +56,12 @@ const GradosList = () => {
       <DataTable
         columns={columns}
         data={grados}
+        pagination={pagination}
+        onPageChange={setPage}
+        onRowsPerPageChange={(newLimit) => { setLimit(newLimit); setPage(1); }}
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Buscar por grado o paralelo..."
         onView={handleView}
         onEdit={(row) => navigate(`/grados/${row.id}`)}
         onDelete={handleDelete}
@@ -70,12 +78,9 @@ const GradosList = () => {
         onClose={() => setViewOpen(false)}
         title="Detalle de Grado"
         fields={[
-          { label: 'ID', value: selectedGrado?.id },
           { label: 'Grado', value: selectedGrado?.grado },
           { label: 'Paralelo', value: selectedGrado?.paralelo },
-          //{ label: 'Nombre Completo', value: selectedGrado?.nombre_completo },
         ]}
-        status={selectedGrado?.id_estado}
       />
     </Container>
   );

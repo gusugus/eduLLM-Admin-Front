@@ -36,12 +36,15 @@ Panel de administración frontend SPA que gestiona **Profesores, Estudiantes, Ma
 │  SnackbarProvider → <App />                      │
 ├─────────────────────────────────────────────────┤
 │                   App.jsx                        │
-│  BrowserRouter → AuthGate → Layout → AppRoutes  │
+│  BrowserRouter → [ /forbidden → ForbiddenPage ] │
+│               → [ /* → AuthGate ]               │
 ├─────────────────────────────────────────────────┤
 │                 AuthGate (App.jsx)               │
-│  1. Llama /api/auth/verify con cookie            │
-│  2. Si autenticado → Layout + AppRoutes          │
-│  3. Si no → snackbar + LoginForm                │
+│  1. verifyAuth() → GET /api/auth/verify         │
+│  2. Si rol ≠ ROLE_ADMINISTRADOR → /forbidden    │
+│     + setForbidden(true) → null (no render)     │
+│  3. Si admin → Layout + Suspense(AppRoutes)     │
+│     (lazy load: feature chunks bajo demanda)    │
 ├──────────────┬──────────────┬───────────────────┤
 │   Features   │  Components  │    Services       │
 │  (por módulo)│  (comunes)   │  (API calls)      │
@@ -69,7 +72,30 @@ Component → Hook (useXxx) → Service (xxxService) → API (axios) → Gateway
 
 ## Autenticación
 
-- **Cookie-based**: el gateway envía una cookie HttpOnly al hacer login en `/api/auth/login`
-- **Verify**: al cargar la app, `AuthGate` (en App.jsx) llama `GET /api/auth/verify` con `withCredentials: true`
-- La respuesta del verify se guarda globalmente en `authStore.user` vía `useAuth().verifyAuth()`
-- Si el usuario no está autenticado, se muestra `LoginForm` integrado en el frontend
+- **Cookie + Bearer**: el Gateway acepta token en cookie `jwtToken` (prioridad) o `Authorization: Bearer`
+- **Verify**: al cargar la app, `AuthGate` llama `GET /api/auth/verify` con `withCredentials: true`
+- **Role check**: si `rol !== 'ROLE_ADMINISTRADOR'` → `navigate('/forbidden')` + `setForbidden(true)` → el Layout nunca se renderiza (render guard)
+- **ForbiddenPage**: al montarse, llama logout para limpiar cookie y store, y muestra link a login
+- **Lazy loading**: `AppRoutes` se carga con `React.lazy()` → los chunks de features (profesores, estudiantes, etc.) solo se descargan si el usuario es admin
+- **403 en API**: el interceptor de Axios en `api.js` redirige a `/forbidden` si alguna respuesta falla con 403
+
+### Flujo AuthGate
+
+```
+AuthGate mount
+  │
+  ├─ loading=true → LoadingScreen
+  │
+  ├─ verifyAuth()
+  │    └─ GET /api/auth/verify (cookie automática)
+  │
+  ├─ data.authenticated?
+  │    ├─ NO → noSession=true → "No hay sesión" → redirect login
+  │    └─ SI → data.rol === 'ROLE_ADMINISTRADOR'?
+  │           ├─ NO → setForbidden(true) → navigate('/forbidden')
+  │           │        → render guard: return null
+  │           │        → ForbiddenPage mount → logout()
+  │           └─ SI → snackbar bienvenida → Layout + lazy(AppRoutes)
+  │
+  └─ loading=false
+```
