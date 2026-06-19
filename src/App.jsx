@@ -1,17 +1,22 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import React, { useEffect, useState, useRef, lazy, Suspense } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { Container, Typography, Box } from '@mui/material';
-import AppRoutes from './routes/AppRoutes';
+import { useSnackbar } from 'notistack';
 import Layout from './components/common/Layout';
 import LoadingScreen from './components/common/LoadingScreen';
+import ForbiddenPage from './pages/ForbiddenPage';
 import { useAuth } from './hooks/useAuth';
 import { redirectToLogin } from './utils/auth';
 
+const AppRoutes = lazy(() => import('./routes/AppRoutes'));
+
 function AuthGate() {
   const { verifyAuth, isAuthenticated } = useAuth();
+  const { enqueueSnackbar } = useSnackbar();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [loadingMessage, setLoadingMessage] = useState('Iniciando aplicación...');
   const [noSession, setNoSession] = useState(false);
+  const [forbidden, setForbidden] = useState(false);
 
   const skipVerify = import.meta.env.VITE_SKIP_AUTH_VERIFY === 'true';
   const verifyCalled = useRef(false);
@@ -26,13 +31,16 @@ function AuthGate() {
         return;
       }
 
-      setLoadingMessage('🔍 Verificando autenticación...');
-
       try {
         const data = await verifyAuth();
 
         if (data?.authenticated) {
-          setLoadingMessage(`👋 Bienvenido, ${data.username}!`);
+          if (data.rol !== 'ROLE_ADMINISTRADOR') {
+            setForbidden(true);
+            navigate('/forbidden', { replace: true });
+            return;
+          }
+          enqueueSnackbar(`Bienvenido, ${data.username}!`, { variant: 'success' });
           await new Promise(resolve => setTimeout(resolve, 500));
         } else {
           setNoSession(true);
@@ -46,7 +54,7 @@ function AuthGate() {
     };
 
     init();
-  }, [verifyAuth, skipVerify]);
+  }, [verifyAuth, skipVerify, enqueueSnackbar, navigate]);
 
   useEffect(() => {
     if (noSession) {
@@ -55,17 +63,8 @@ function AuthGate() {
     }
   }, [noSession]);
 
-  if (skipVerify) {
-    if (loading) {
-    return <LoadingScreen message={loadingMessage} delay={300} />;
-    }
-    return (
-      <Layout>
-        <AppRoutes />
-      </Layout>
-    );
-  }
-
+  if (forbidden) return null;
+  if (loading) return <LoadingScreen />;
   if (noSession) {
     return (
       <Container maxWidth="sm" sx={{ mt: 8, textAlign: 'center' }}>
@@ -76,14 +75,13 @@ function AuthGate() {
       </Container>
     );
   }
-
-  if (!isAuthenticated) {
-    return null;
-  }
+  if (!isAuthenticated) return null;
 
   return (
     <Layout>
-      <AppRoutes />
+      <Suspense fallback={<LoadingScreen />}>
+        <AppRoutes />
+      </Suspense>
     </Layout>
   );
 }
@@ -92,6 +90,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/forbidden" element={<ForbiddenPage />} />
         <Route path="/*" element={<AuthGate />} />
       </Routes>
     </BrowserRouter>

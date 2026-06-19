@@ -1,22 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSnackbar } from 'notistack';
 import {
   Box, Grid, Typography, Button, MenuItem, TextField,
   Table, TableHead, TableRow, TableCell, TableBody, Paper,
-  IconButton
+  IconButton, TablePagination
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { useProfessors } from '../../features/professors/hooks/useProfessors';
-import { useSubjects } from '../../features/subjects/hooks/useSubjects';
+import { professorService } from '../../services/professorService';
+import { subjectService } from '../../services/subjectService';
 import { useAssignments } from './hooks/useAssignments';
 
 const AssignProfessorSubject = () => {
-  const { data: profsData } = useProfessors();
-  const { data: subsData } = useSubjects();
-  const { professorAssignments, isLoadingProf, assignProfessor, removeProfessorAssignment } = useAssignments();
+  const { professorAssignments, isLoadingProf, assignProfessor, removeProfessorAssignment, profPage, profLimit, setProfPage, setProfLimit } = useAssignments();
+  const [professors, setProfessors] = useState([]);
+  const [subjects, setSubjects] = useState([]);
 
-  const professors = profsData?.data || profsData || [];
-  const subjects = subsData?.data || subsData || [];
+  useEffect(() => {
+    professorService.getActive().then(setProfessors);
+    subjectService.getActive().then(setSubjects);
+  }, []);
 
   const { enqueueSnackbar } = useSnackbar();
   const [id_profesor, setIdProfesor] = useState('');
@@ -76,7 +78,7 @@ const AssignProfessorSubject = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {professorAssignments?.filter(a => a.estado === 'Activo').map(a => (
+              {professorAssignments?.data?.filter(a => a.estado === 'Activo').map(a => (
                 <TableRow key={a.id}>
                   <TableCell>{a.profesor}</TableCell>
                   <TableCell>{a.materia}</TableCell>
@@ -88,11 +90,22 @@ const AssignProfessorSubject = () => {
                   </TableCell>
                 </TableRow>
               ))}
-              {(!professorAssignments || professorAssignments.filter(a => a.estado === 'Activo').length === 0) && (
+              {(!professorAssignments?.data || professorAssignments.data.filter(a => a.estado === 'Activo').length === 0) && (
                 <TableRow><TableCell colSpan={4} align="center">Sin asignaciones</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
+          {professorAssignments?.pagination && (
+            <TablePagination
+              component="div"
+              count={professorAssignments.pagination.total || 0}
+              page={(professorAssignments.pagination.page || 1) - 1}
+              rowsPerPage={professorAssignments.pagination.limit || 10}
+              rowsPerPageOptions={[5, 10, 25, 50]}
+              onPageChange={(_, newPage) => setProfPage(newPage + 1)}
+              onRowsPerPageChange={(e) => { setProfLimit(parseInt(e.target.value, 10)); setProfPage(1); }}
+            />
+          )}
         </Paper>
       )}
     </Box>

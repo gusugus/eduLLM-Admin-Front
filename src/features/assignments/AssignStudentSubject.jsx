@@ -1,26 +1,30 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box, Grid, Typography, Button, MenuItem, TextField,
   Table, TableHead, TableRow, TableCell, TableBody, Paper,
-  Checkbox, IconButton, Chip, InputAdornment
+  Checkbox, IconButton, Chip, InputAdornment, TablePagination
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { useStudents } from '../../features/students/hooks/useStudents';
-import { useSubjects } from '../../features/subjects/hooks/useSubjects';
+import { studentService } from '../../services/studentService';
+import { subjectService } from '../../services/subjectService';
 import { useAssignments } from './hooks/useAssignments';
 
 const AssignStudentSubject = () => {
-  const { data: studsData } = useStudents();
-  const { data: subsData } = useSubjects();
-  const { studentAssignments, isLoadingStud, assignStudents, removeStudentAssignment } = useAssignments();
+  const { studentAssignments, isLoadingStud, assignStudents, removeStudentAssignment, studPage, studLimit, setStudPage, setStudLimit } = useAssignments();
+  const [students, setStudents] = useState([]);
+  const [subjects, setSubjects] = useState([]);
 
-  const students = studsData?.data || studsData || [];
-  const subjects = subsData?.data || subsData || [];
+  useEffect(() => {
+    studentService.getActive().then(setStudents);
+    subjectService.getActive().then(setSubjects);
+  }, []);
 
   const [id_materia, setIdMateria] = useState('');
   const [selected, setSelected] = useState([]);
   const [search, setSearch] = useState('');
+  const [studentPage, setStudentPage] = useState(1);
+  const [studentLimit, setStudentLimit] = useState(10);
 
   const handleMateriaChange = (e) => {
     setIdMateria(e.target.value);
@@ -29,7 +33,7 @@ const AssignStudentSubject = () => {
   };
 
   const assignedStudentIds = new Set(
-    (studentAssignments || [])
+    (studentAssignments?.data || [])
       .filter(a => a.estado === 'Activo' && a.id_materia === parseInt(id_materia))
       .map(a => a.id_estudiante)
   );
@@ -48,11 +52,18 @@ const AssignStudentSubject = () => {
     setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };
 
+  const paginatedStudents = useMemo(() => {
+    const start = (studentPage - 1) * studentLimit;
+    return filteredStudents.slice(start, start + studentLimit);
+  }, [filteredStudents, studentPage, studentLimit]);
+
   const toggleAll = () => {
-    if (selected.length === filteredStudents.length) {
-      setSelected([]);
+    const pageIds = paginatedStudents.map(s => s.id);
+    const allOnPageSelected = pageIds.every(id => selected.includes(id));
+    if (allOnPageSelected) {
+      setSelected(prev => prev.filter(id => !pageIds.includes(id)));
     } else {
-      setSelected(filteredStudents.map(s => s.id));
+      setSelected(prev => [...new Set([...prev, ...pageIds])]);
     }
   };
 
@@ -102,8 +113,8 @@ const AssignStudentSubject = () => {
             <TableRow>
               <TableCell padding="checkbox">
                 <Checkbox
-                  checked={filteredStudents.length > 0 && selected.length === filteredStudents.length}
-                  indeterminate={selected.length > 0 && selected.length < filteredStudents.length}
+                  checked={paginatedStudents.length > 0 && paginatedStudents.every(s => selected.includes(s.id))}
+                  indeterminate={selected.length > 0 && !paginatedStudents.every(s => selected.includes(s.id))}
                   onClick={toggleAll}
                 />
               </TableCell>
@@ -112,7 +123,7 @@ const AssignStudentSubject = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredStudents.map(s => (
+            {paginatedStudents.map(s => (
               <TableRow key={s.id} hover selected={selected.includes(s.id)}
                 onClick={() => toggleStudent(s.id)} sx={{ cursor: 'pointer' }}>
                 <TableCell padding="checkbox">
@@ -122,11 +133,20 @@ const AssignStudentSubject = () => {
                 <TableCell>{s.cedula}</TableCell>
               </TableRow>
             ))}
-            {filteredStudents.length === 0 && (
+            {paginatedStudents.length === 0 && (
               <TableRow><TableCell colSpan={3} align="center">{id_materia ? (search ? 'Sin resultados' : 'Todos los estudiantes ya están asignados') : 'Seleccione una materia'}</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
+        <TablePagination
+          component="div"
+          count={filteredStudents.length}
+          page={studentPage - 1}
+          rowsPerPage={studentLimit}
+          rowsPerPageOptions={[5, 10, 25, 50]}
+          onPageChange={(_, p) => { setStudentPage(p + 1); setSelected([]); }}
+          onRowsPerPageChange={(e) => { setStudentLimit(parseInt(e.target.value, 10)); setStudentPage(1); setSelected([]); }}
+        />
       </Paper>
 
       <Typography variant="subtitle1" gutterBottom>Asignaciones actuales</Typography>
@@ -146,7 +166,7 @@ const AssignStudentSubject = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {studentAssignments?.filter(a => a.estado === 'Activo' && a.id_materia === parseInt(id_materia)).map(a => (
+              {studentAssignments?.data?.filter(a => a.estado === 'Activo' && a.id_materia === parseInt(id_materia)).map(a => (
                 <TableRow key={a.id}>
                   <TableCell>{a.estudiante}</TableCell>
                   <TableCell>{a.materia}</TableCell>
@@ -158,11 +178,22 @@ const AssignStudentSubject = () => {
                   </TableCell>
                 </TableRow>
               ))}
-              {(!studentAssignments || studentAssignments.filter(a => a.estado === 'Activo' && a.id_materia === parseInt(id_materia)).length === 0) && (
+              {(!studentAssignments?.data || studentAssignments.data.filter(a => a.estado === 'Activo' && a.id_materia === parseInt(id_materia)).length === 0) && (
                 <TableRow><TableCell colSpan={4} align="center">Sin asignaciones para esta materia</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
+          {studentAssignments?.pagination && (
+            <TablePagination
+              component="div"
+              count={studentAssignments.pagination.total || 0}
+              page={(studentAssignments.pagination.page || 1) - 1}
+              rowsPerPage={studentAssignments.pagination.limit || 10}
+              rowsPerPageOptions={[5, 10, 25, 50]}
+              onPageChange={(_, newPage) => setStudPage(newPage + 1)}
+              onRowsPerPageChange={(e) => { setStudLimit(parseInt(e.target.value, 10)); setStudPage(1); }}
+            />
+          )}
         </Paper>
       )}
     </Box>

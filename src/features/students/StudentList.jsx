@@ -16,13 +16,14 @@ const columns = [
 
 const StudentsList = () => {
   const navigate = useNavigate();
-  const { data, isLoading, deleteStudent } = useStudents();
+  const { data, isLoading, deleteStudent, page, limit, search, setPage, setLimit, setSearch } = useStudents();
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
 
-  const students = data?.data || data || [];
+  const students = data?.data || [];
+  const pagination = data?.pagination || null;
 
   const handleView = async (row) => {
     try {
@@ -54,6 +55,12 @@ const StudentsList = () => {
       <DataTable
         columns={columns}
         data={students}
+        pagination={pagination}
+        onPageChange={setPage}
+        onRowsPerPageChange={(newLimit) => { setLimit(newLimit); setPage(1); }}
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Buscar por nombre o username..."
         onView={handleView}
         onEdit={(row) => navigate(`/students/${row.id}`)}
         onDelete={handleDelete}

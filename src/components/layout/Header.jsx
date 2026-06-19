@@ -8,14 +8,13 @@ import { useAuth } from '../../hooks/useAuth';
 const GATEWAY = import.meta.env.VITE_GATEWAY_URL || 'http://localhost:8085';
 
 const Header = () => {
-  const { logout: clearSession, user } = useAuth();
+  const { user, logout: clearSession } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleMenu = (e) => setAnchorEl(e.currentTarget);
   const handleClose = () => setAnchorEl(null);
 
   const handleLogout = async () => {
-    localStorage.removeItem('jwtToken');
     clearSession();
     try {
       await axios.post(`${GATEWAY}/api/auth/logout`, null, { withCredentials: true });
