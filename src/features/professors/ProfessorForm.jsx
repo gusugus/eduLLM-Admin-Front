@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Container, Typography, Button, Box, 
@@ -8,15 +8,11 @@ import {
 } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
-import { debounce } from 'lodash';
 import FormInput from '../../components/common/FormInput';
 import { useProfessors } from './hooks/useProfessors';
 import uploadService from '../../services/uploadService';
 import { 
-  professorValidationRules,
-  checkUsernameAvailability,
-  suggestUsername,
-  validateUsername
+  professorValidationRules
 } from '../../utils/validations';
 
 const ProfessorForm = () => {
@@ -26,9 +22,6 @@ const ProfessorForm = () => {
   const { createProfessor, updateProfessor, useProfessorById, error: loadError, refetch } = useProfessors({ enableList: false });
   
   const isEdit = !!id;
-  const [generatedUsername, setGeneratedUsername] = useState('');
-  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
-  const [usernameExists, setUsernameExists] = useState(false);
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [foto, setFoto] = useState(null);
@@ -36,7 +29,7 @@ const ProfessorForm = () => {
   const [fotoUrlActual, setFotoUrlActual] = useState(null);
 
   // Inicializar useForm
-  const { control, register, handleSubmit, watch, setValue, getValues, trigger, reset, formState: { errors, isSubmitting }, setError, clearErrors } = useForm({
+  const { control, register, handleSubmit, reset, formState: { errors, isSubmitting }, clearErrors } = useForm({
     mode: 'onBlur',
     reValidateMode: 'onChange',
     defaultValues: {
@@ -45,9 +38,7 @@ const ProfessorForm = () => {
       segundo_nombre: '',
       apellido_paterno: '',
       apellido_materno: '',
-      correo: '',
-      username: '',
-      password: ''
+      correo: ''
     }
   });
 
@@ -84,108 +75,31 @@ const ProfessorForm = () => {
     }
   }, [loadError]);
 
-  const primerNombre = watch('primer_nombre');
-  const apellidoPaterno = watch('apellido_paterno');
-  const currentUsername = watch('username');
-
-  // Función para verificar username en BD (debounced)
-  const checkUsernameAvailabilityDebounced = useCallback(
-    debounce(async (username) => {
-      if (!username || username.length < 3) {
-        setUsernameExists(false);
-        return;
-      }
-      
-      setIsCheckingUsername(true);
-      try {
-        const result = await checkUsernameAvailability(username, id);
-        if (!result.available) {
-          setUsernameExists(true);
-          setError('username', { 
-            type: 'manual', 
-            message: result.message || 'Este username ya existe. Haz clic en "Usar sugerido" para obtener uno disponible' 
-          });
-        } else {
-          setUsernameExists(false);
-          clearErrors('username');
-        }
-      } catch (error) {
-        console.error('Error checking username:', error);
-      } finally {
-        setIsCheckingUsername(false);
-      }
-    }, 500),
-    [id, setError, clearErrors]
-  );
-
-  // Verificar cuando cambia el username
-  useEffect(() => {
-    if (currentUsername && !isEdit) {
-      checkUsernameAvailabilityDebounced(currentUsername);
-    }
-    return () => checkUsernameAvailabilityDebounced.cancel();
-  }, [currentUsername, isEdit, checkUsernameAvailabilityDebounced]);
-
-  // Generar username automáticamente
-  const generateNewUsername = useCallback(async () => {
-    const currentPrimer = getValues('primer_nombre');
-    const currentApellido = getValues('apellido_paterno');
-    
-    if (!currentPrimer || !currentApellido) {
-      enqueueSnackbar('Complete nombre y apellido primero', { variant: 'warning' });
-      return;
-    }
-    
-    setIsCheckingUsername(true);
-    try {
-      const result = await suggestUsername(currentPrimer, currentApellido);
-      const newUsername = result.username;
-      
-      setGeneratedUsername(newUsername);
-      setUsernameExists(false);
-      setValue('username', newUsername, { 
-        shouldValidate: true,
-        shouldDirty: true,
-        shouldTouch: true
-      });
-      
-      await trigger('username');
-      
-      clearErrors('username');
-      
-      if (!result.isNew) {
-        enqueueSnackbar(`Username sugerido automáticamente: ${newUsername}`, { variant: 'info' });
-      }
-    } catch (error) {
-      console.error('Error generating username:', error);
-    } finally {
-      setIsCheckingUsername(false);
-    }
-  }, [getValues, setValue, trigger, clearErrors, enqueueSnackbar]);
-
   const onSubmit = async (formData) => {
     try {
+      let result;
       let idUsuario;
 
       if (isEdit) {
-        const { username, password, ...updateData } = formData;
-        const result = await updateProfessor.mutateAsync({ id, data: updateData });
+        result = await updateProfessor.mutateAsync({ id, data: formData });
         idUsuario = result?.data?.id_usuario;
       } else {
-        const result = await createProfessor.mutateAsync(formData);
+        result = await createProfessor.mutateAsync(formData);
         idUsuario = result?.data?.id_usuario;
       }
+
+      const successMsg = result?.data?.message || (isEdit ? 'Profesor actualizado exitosamente' : 'Profesor creado exitosamente');
 
       if (foto && idUsuario) {
         try {
           await uploadService.uploadProfilePhoto(foto, idUsuario);
-          enqueueSnackbar(isEdit ? 'Profesor actualizado con foto' : 'Profesor creado con foto', { variant: 'success' });
+          enqueueSnackbar(successMsg, { variant: 'success' });
         } catch (uploadErr) {
           console.error('Error al subir foto:', uploadErr);
-          enqueueSnackbar(isEdit ? 'Profesor actualizado pero error al subir la foto' : 'Profesor creado pero error al subir la foto', { variant: 'warning' });
+          enqueueSnackbar(successMsg + ' (error al subir la foto)', { variant: 'warning' });
         }
       } else {
-        enqueueSnackbar(isEdit ? 'Profesor actualizado exitosamente' : 'Profesor creado exitosamente', { variant: 'success' });
+        enqueueSnackbar(successMsg, { variant: 'success' });
       }
 
       navigate('/professors');
@@ -194,11 +108,6 @@ const ProfessorForm = () => {
       setErrorMessage(errorMsg);
       setErrorModalOpen(true);
       enqueueSnackbar(errorMsg, { variant: 'error' });
-      
-      if (errorMsg.toLowerCase().includes('username')) {
-        setError('username', { message: 'Username ya existe. Usa el botón "Usar sugerido"' });
-        setUsernameExists(true);
-      }
     }
   };
 
@@ -212,28 +121,7 @@ const ProfessorForm = () => {
       },
       { name: 'apellido_materno', label: 'Apellido Materno', required: false, sm: 6, mask: 'letters', validation: professorValidationRules.apellido_materno },
       { name: 'correo', label: 'Correo Electrónico', required: true, type: 'email', sm: 6, validation: professorValidationRules.correo }
-    ],
-    credenciales: !isEdit ? [
-      { 
-        name: 'username', 
-        label: 'Username', 
-        required: true, 
-        sm: 12, 
-        mask: 'username',
-        helperText: generatedUsername ? `Última sugerencia: ${generatedUsername}` : '',
-        validation: {
-          required: 'El username es requerido',
-          minLength: { value: 3, message: 'Mínimo 3 caracteres' },
-          validate: (value) => {
-            if (!validateUsername(value)) {
-              return 'Solo letras, números, guiones y guiones bajos';
-            }
-            return true;
-          }
-        }
-      },
-      { name: 'password', label: 'Contraseña', required: true, type: 'password', sm: 12, validation: professorValidationRules.password }
-    ] : []
+    ]
   };
 
   // Mostrar loading mientras se cargan los datos en edición
@@ -323,30 +211,6 @@ const ProfessorForm = () => {
               )}
             </Grid>
             
-            {fields.credenciales.length > 0 && (
-              <>
-                <Grid item xs={12}>
-                  <Typography variant="h6" color="primary">Credenciales de Acceso</Typography>
-                </Grid>
-                {fields.credenciales.map((field) => (
-                  <FormInput
-                    key={field.name === 'username' ? `username-${generatedUsername}` : field.name}
-                    name={field.name}
-                    label={field.label}
-                    register={register}
-                    errors={errors}
-                    control={control}
-                    required={field.required}
-                    type={field.type}
-                    sm={field.sm}
-                    mask={field.mask}
-                    validation={field.validation}
-                    helperText={field.helperText}
-                  />
-                ))}
-              </>
-            )}
-            
             <Grid item xs={12}>
               <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
                 <Button variant="outlined" onClick={() => navigate('/professors')}>
@@ -355,7 +219,7 @@ const ProfessorForm = () => {
                 <Button 
                   type="submit" 
                   variant="contained" 
-                  disabled={isSubmitting || isCheckingUsername}
+                  disabled={isSubmitting}
                 >
                   {isSubmitting ? 'Guardando...' : (isEdit ? 'Actualizar' : 'Crear Profesor')}
                 </Button>

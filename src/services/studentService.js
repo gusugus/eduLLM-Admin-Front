@@ -24,7 +24,9 @@ export const studentService = {
   update: (id, data) => api.put(`/students/${id}`, data)
                         .then(res => res.data),
   delete: (id) => api.delete(`/students/${id}`)
-                        .then(res => res.data),
+                      .then(res => res.data),
+  activate: (id) => api.post(`/students/${id}/activate`)
+                      .then(res => res.data),
 };
 
 export default studentService;

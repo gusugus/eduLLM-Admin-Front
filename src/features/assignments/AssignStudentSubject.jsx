@@ -8,10 +8,12 @@ import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { studentService } from '../../services/studentService';
 import { subjectService } from '../../services/subjectService';
+import assignmentService from '../../services/assignmentService';
 import { useAssignments } from './hooks/useAssignments';
 
 const AssignStudentSubject = () => {
-  const { studentAssignments, isLoadingStud, assignStudents, removeStudentAssignment, studPage, studLimit, setStudPage, setStudLimit } = useAssignments();
+  const [id_materia, setIdMateria] = useState('');
+  const { studentAssignments, isLoadingStud, assignStudents, removeStudentAssignment, studPage, studLimit, setStudPage, setStudLimit } = useAssignments(id_materia);
   const [students, setStudents] = useState([]);
   const [subjects, setSubjects] = useState([]);
 
@@ -20,11 +22,18 @@ const AssignStudentSubject = () => {
     subjectService.getActive().then(setSubjects);
   }, []);
 
-  const [id_materia, setIdMateria] = useState('');
   const [selected, setSelected] = useState([]);
   const [search, setSearch] = useState('');
   const [studentPage, setStudentPage] = useState(1);
   const [studentLimit, setStudentLimit] = useState(10);
+  const [assignedIds, setAssignedIds] = useState([]);
+
+  const refreshAssignedIds = () => {
+    if (!id_materia) { setAssignedIds([]); return; }
+    assignmentService.getStudentIdsByMateria(id_materia).then(setAssignedIds);
+  };
+
+  useEffect(() => { refreshAssignedIds(); }, [id_materia]);
 
   const handleMateriaChange = (e) => {
     setIdMateria(e.target.value);
@@ -32,11 +41,7 @@ const AssignStudentSubject = () => {
     setSearch('');
   };
 
-  const assignedStudentIds = new Set(
-    (studentAssignments?.data || [])
-      .filter(a => a.estado === 'Activo' && a.id_materia === parseInt(id_materia))
-      .map(a => a.id_estudiante)
-  );
+  const assignedStudentIds = new Set(assignedIds);
   const availableStudents = students.filter(s => !assignedStudentIds.has(s.id));
 
   const filteredStudents = useMemo(() => {
@@ -72,6 +77,7 @@ const AssignStudentSubject = () => {
     try {
       await assignStudents.mutateAsync({ id_estudiantes: selected, id_materia });
       setSelected([]);
+      refreshAssignedIds();
     } catch (e) {
       // error handled by snackbar
     }
@@ -161,25 +167,23 @@ const AssignStudentSubject = () => {
               <TableRow>
                 <TableCell>Estudiante</TableCell>
                 <TableCell>Materia</TableCell>
-                <TableCell>Estado</TableCell>
                 <TableCell>Acción</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {studentAssignments?.data?.filter(a => a.estado === 'Activo' && a.id_materia === parseInt(id_materia)).map(a => (
+              {(studentAssignments?.data || []).map(a => (
                 <TableRow key={a.id}>
                   <TableCell>{a.estudiante}</TableCell>
                   <TableCell>{a.materia}</TableCell>
-                  <TableCell>{a.estado}</TableCell>
                   <TableCell>
-                    <IconButton size="small" onClick={() => removeStudentAssignment.mutateAsync(a.id)}>
+                    <IconButton size="small" onClick={() => removeStudentAssignment.mutateAsync(a.id).then(refreshAssignedIds)}>
                       <DeleteIcon fontSize="small" />
                     </IconButton>
                   </TableCell>
                 </TableRow>
               ))}
-              {(!studentAssignments?.data || studentAssignments.data.filter(a => a.estado === 'Activo' && a.id_materia === parseInt(id_materia)).length === 0) && (
-                <TableRow><TableCell colSpan={4} align="center">Sin asignaciones para esta materia</TableCell></TableRow>
+              {(!studentAssignments?.data || studentAssignments.data.length === 0) && (
+                <TableRow><TableCell colSpan={3} align="center">Sin asignaciones para esta materia</TableCell></TableRow>
               )}
             </TableBody>
           </Table>

@@ -25,6 +25,8 @@ export const gradoService = {
     .then(res => res.data),
   delete: (id) => api.delete(`/grados/${id}`)
     .then(res => res.data),
+  activate: (id) => api.post(`/grados/${id}/activate`)
+    .then(res => res.data),
 };
 
 export default gradoService;

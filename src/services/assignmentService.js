@@ -19,9 +19,13 @@ export const assignmentService = {
     .then(res => res.data.data)
     .catch(err => { throw err; }),
 
-  listStudentSubjects: (page = 1, limit = 10) => api.get('/assignments/student-subject', { params: { page, limit } })
+  listStudentSubjects: (page = 1, limit = 10, id_materia = null) => api.get('/assignments/student-subject', { params: { page, limit, id_materia } })
     .then(res => ({ data: res.data.data || [], pagination: res.data.pagination || null }))
     .catch(() => ({ data: [], pagination: null })),
+
+  getStudentIdsByMateria: (materiaId) => api.get('/assignments/student-subject', { params: { all: true, id_materia: materiaId } })
+    .then(res => (res.data.data || []).map(a => a.id_estudiante))
+    .catch(() => []),
 
   removeStudentSubject: (id) => api.delete(`/assignments/student-subject/${id}`)
     .then(res => res.data)

@@ -8,7 +8,6 @@ import ConfirmDialog from '../../components/common/ConfirmDialog';
 import ProfileModal from '../../components/common/ProfileModal';
 
 const columns = [
-  { field: 'id', headerName: 'ID' },
   { field: 'nombreCompleto', headerName: 'Nombre' },
   { field: 'username', headerName: 'Username' },
   { field: 'estado', headerName: 'Estado' },
@@ -16,9 +15,11 @@ const columns = [
 
 const StudentsList = () => {
   const navigate = useNavigate();
-  const { data, isLoading, deleteStudent, page, limit, search, setPage, setLimit, setSearch } = useStudents();
+  const { data, isLoading, deleteStudent, activateStudent, page, limit, search, setPage, setLimit, setSearch } = useStudents();
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
+  const [openActivateDialog, setOpenActivateDialog] = useState(false);
+  const [selectedActivateRow, setSelectedActivateRow] = useState(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
 
@@ -44,6 +45,16 @@ const StudentsList = () => {
     setOpenDialog(false);
   };
 
+  const handleActivate = (row) => {
+    setSelectedActivateRow(row);
+    setOpenActivateDialog(true);
+  };
+
+  const confirmActivate = async () => {
+    await activateStudent.mutateAsync(selectedActivateRow.id);
+    setOpenActivateDialog(false);
+  };
+
   if (isLoading) return <Typography>Cargando...</Typography>;
 
   return (
@@ -64,6 +75,7 @@ const StudentsList = () => {
         onView={handleView}
         onEdit={(row) => navigate(`/students/${row.id}`)}
         onDelete={handleDelete}
+        onActivate={handleActivate}
       />
       <ConfirmDialog
         open={openDialog}
@@ -71,6 +83,14 @@ const StudentsList = () => {
         message="¿Estás seguro de que deseas eliminar este estudiante?"
         onConfirm={confirmDelete}
         onCancel={() => setOpenDialog(false)}
+      />
+      <ConfirmDialog
+        open={openActivateDialog}
+        title="Activar Estudiante"
+        message={`¿Estás seguro de que deseas activar a ${selectedActivateRow?.nombreCompleto || 'este estudiante'}?`}
+        confirmText="Activar"
+        onConfirm={confirmActivate}
+        onCancel={() => setOpenActivateDialog(false)}
       />
       <ProfileModal
         open={profileOpen}
