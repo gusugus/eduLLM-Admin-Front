@@ -71,21 +71,21 @@ const DashboardCards = () => {
       {cards.map((card) => (
         <div
           key={card.key}
-          className={`bg-gradient-to-br ${card.gradient} rounded-2xl p-5 text-white shadow-md
+          className={`bg-gradient-to-br ${card.gradient} rounded-2xl p-3 text-white shadow-md
                       hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-default`}
         >
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-white/70 text-sm font-medium mb-1">{card.title}</p>
-              <p className="text-4xl font-bold tracking-tight">
+              <p className="text-white text-xl font-bold mb-1">{card.title}</p>
+              <p className="text-4xl font-bold tracking-tight mt-3 mb-3">
                 {isLoading ? '...' : (stats[card.key] ?? 0)}
               </p>
             </div>
-            <div className={`${card.iconBg} rounded-xl p-2.5`}>
+            <div className={`${card.iconBg} rounded-xl p-3.5`}>
               {card.icon}
             </div>
           </div>
-          <p className="text-white/50 text-xs mt-4">Total registrados</p>
+          <p className="text-white text-lg mt-0.5 font-bold">Total registrados</p>
         </div>
       ))}
     </div>

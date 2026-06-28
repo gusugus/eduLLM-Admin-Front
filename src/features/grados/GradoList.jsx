@@ -8,7 +8,6 @@ import ConfirmDialog from '../../components/common/ConfirmDialog';
 import ViewModal from '../../components/common/ViewModal';
 
 const columns = [
-  { field: 'id', headerName: 'ID' },
   { field: 'grado', headerName: 'Grado' },
   { field: 'paralelo', headerName: 'Paralelo' },
   { field: 'nombre_completo', headerName: 'Nombre Completo' },
@@ -17,9 +16,11 @@ const columns = [
 
 const GradosList = () => {
   const navigate = useNavigate();
-  const { data, isLoading, deleteGrado, page, limit, search, setPage, setLimit, setSearch } = useGrados();
+  const { data, isLoading, deleteGrado, activateGrado, page, limit, search, setPage, setLimit, setSearch } = useGrados();
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
+  const [openActivateDialog, setOpenActivateDialog] = useState(false);
+  const [selectedActivateRow, setSelectedActivateRow] = useState(null);
   const [viewOpen, setViewOpen] = useState(false);
   const [selectedGrado, setSelectedGrado] = useState(null);
 
@@ -45,6 +46,16 @@ const GradosList = () => {
     setOpenDialog(false);
   };
 
+  const handleActivate = (row) => {
+    setSelectedActivateRow(row);
+    setOpenActivateDialog(true);
+  };
+
+  const confirmActivate = async () => {
+    await activateGrado.mutateAsync(selectedActivateRow.id);
+    setOpenActivateDialog(false);
+  };
+
   if (isLoading) return <Typography>Cargando...</Typography>;
 
   return (
@@ -65,6 +76,7 @@ const GradosList = () => {
         onView={handleView}
         onEdit={(row) => navigate(`/grados/${row.id}`)}
         onDelete={handleDelete}
+        onActivate={handleActivate}
       />
       <ConfirmDialog
         open={openDialog}
@@ -72,6 +84,14 @@ const GradosList = () => {
         message="¿Estás seguro de que deseas eliminar este grado?"
         onConfirm={confirmDelete}
         onCancel={() => setOpenDialog(false)}
+      />
+      <ConfirmDialog
+        open={openActivateDialog}
+        title="Activar Grado"
+        message={`¿Estás seguro de que deseas activar el grado "${selectedActivateRow?.nombre_completo || 'este grado'}"?`}
+        confirmText="Activar"
+        onConfirm={confirmActivate}
+        onCancel={() => setOpenActivateDialog(false)}
       />
       <ViewModal
         open={viewOpen}

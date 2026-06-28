@@ -47,6 +47,13 @@ export const useStudents = ({ enableList = true } = {}) => {
     },
   });
 
+  const activateMutation = useMutation({
+    mutationFn: (id) => studentService.activate(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries([QUERY_KEY]);
+    },
+  });
+
   return {
     data,
     isLoading,
@@ -62,5 +69,6 @@ export const useStudents = ({ enableList = true } = {}) => {
     createStudent: createMutation,
     updateStudent: updateMutation,
     deleteStudent: deleteMutation,
+    activateStudent: activateMutation,
   };
 };

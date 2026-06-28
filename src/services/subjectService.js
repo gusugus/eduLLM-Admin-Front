@@ -25,6 +25,8 @@ export const subjectService = {
                           .then(res => res.data),
   delete: (id) => api.delete(`/subjects/${id}`)
                       .then(res => res.data),
+  activate: (id) => api.post(`/subjects/${id}/activate`)
+                      .then(res => res.data),
 };
 
 export default subjectService;

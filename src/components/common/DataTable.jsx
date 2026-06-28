@@ -3,9 +3,10 @@ import { Table, TableHead, TableRow, TableCell, TableBody, TablePagination, Pape
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import RestoreFromTrashIcon from '@mui/icons-material/RestoreFromTrash';
 import SearchIcon from '@mui/icons-material/Search';
 
-const DataTable = ({ columns, data, onEdit, onDelete, onView, pagination, onPageChange, onRowsPerPageChange, search, onSearchChange, searchPlaceholder = 'Buscar...' }) => {
+const DataTable = ({ columns, data, onEdit, onDelete, onView, onActivate, pagination, onPageChange, onRowsPerPageChange, search, onSearchChange, searchPlaceholder = 'Buscar...' }) => {
   const [draftSearch, setDraftSearch] = useState(search || '');
 
   const handleSearch = () => {
@@ -61,6 +62,9 @@ const DataTable = ({ columns, data, onEdit, onDelete, onView, pagination, onPage
                     <IconButton onClick={() => onEdit(row)}><EditIcon /></IconButton>
                     <IconButton onClick={() => onDelete(row.id)}><DeleteIcon /></IconButton>
                   </>
+                )}
+                {row.estado !== 'Activo' && onActivate && (
+                  <IconButton onClick={() => onActivate(row)} color="success"><RestoreFromTrashIcon /></IconButton>
                 )}
               </TableCell>
             </TableRow>

@@ -47,6 +47,13 @@ export const useGrados = ({ enableList = true } = {}) => {
     },
   });
 
+  const activateMutation = useMutation({
+    mutationFn: (id) => gradoService.activate(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries([QUERY_KEY]);
+    },
+  });
+
   return {
     data,
     isLoading,
@@ -62,5 +69,6 @@ export const useGrados = ({ enableList = true } = {}) => {
     createGrado: createMutation,
     updateGrado: updateMutation,
     deleteGrado: deleteMutation,
+    activateGrado: activateMutation,
   };
 };

@@ -47,6 +47,13 @@ export const useSubjects = ({ enableList = true } = {}) => {
     },
   });
 
+  const activateMutation = useMutation({
+    mutationFn: (id) => subjectService.activate(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries([QUERY_KEY]);
+    },
+  });
+
   return {
     data,
     isLoading,
@@ -62,5 +69,6 @@ export const useSubjects = ({ enableList = true } = {}) => {
     createSubject: createMutation,
     updateSubject: updateMutation,
     deleteSubject: deleteMutation,
+    activateSubject: activateMutation,
   };
 };

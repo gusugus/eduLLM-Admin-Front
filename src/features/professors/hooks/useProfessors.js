@@ -48,6 +48,13 @@ export const useProfessors = ({ enableList = true } = {}) => {
     },
   });
 
+  const activateMutation = useMutation({
+    mutationFn: (id) => professorService.activate(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries([QUERY_KEY]);
+    },
+  });
+
   return {
     data,
     isLoading,
@@ -63,5 +70,6 @@ export const useProfessors = ({ enableList = true } = {}) => {
     createProfessor: createMutation,
     updateProfessor: updateMutation,
     deleteProfessor: deleteMutation,
+    activateProfessor: activateMutation,
   };
 };

@@ -5,7 +5,7 @@ import assignmentService from '../../../services/assignmentService';
 const PROF_KEY = 'assignments-professor';
 const STUD_KEY = 'assignments-student';
 
-export const useAssignments = () => {
+export const useAssignments = (studMateriaId = null) => {
   const queryClient = useQueryClient();
   const [profPage, setProfPage] = useState(1);
   const [profLimit, setProfLimit] = useState(10);
@@ -32,8 +32,9 @@ export const useAssignments = () => {
   // ─── Estudiante ↔ Materia ───────────────────────────
 
   const studentAssignmentsQuery = useQuery({
-    queryKey: [STUD_KEY, studPage, studLimit],
-    queryFn: () => assignmentService.listStudentSubjects(studPage, studLimit),
+    queryKey: [STUD_KEY, studPage, studLimit, studMateriaId],
+    queryFn: () => assignmentService.listStudentSubjects(studPage, studLimit, studMateriaId),
+    enabled: !!studMateriaId,
   });
 
   const assignStudentsMutation = useMutation({

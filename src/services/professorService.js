@@ -25,6 +25,8 @@ export const professorService = {
                       .then(res => res.data),
   delete: (id) => api.delete(`/professors/${id}`)
                       .then(res => res.data),
+  activate: (id) => api.post(`/professors/${id}/activate`)
+                      .then(res => res.data),
 };
 
 export default professorService;

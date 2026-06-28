@@ -7,8 +7,8 @@ const menuItems = [
   { text: 'Dashboard',    icon: <Dashboard />,  path: '/' },
   { text: 'Profesores',   icon: <People />,      path: '/professors' },
   { text: 'Estudiantes',  icon: <School />,      path: '/students' },
-  { text: 'Materias',     icon: <Book />,        path: '/subjects' },
   { text: 'Grados',       icon: <Layers />,      path: '/grados' },
+  { text: 'Materias',     icon: <Book />,        path: '/subjects' },
   { text: 'Asignaciones', icon: <Assignment />,  path: '/assignments' },
 ];
 
