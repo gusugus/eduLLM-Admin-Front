@@ -1,17 +1,20 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import professorService from '../../../services/professorService';
 
 const QUERY_KEY = 'professors';
 
-export const useProfessors = ({ enableList = true } = {}) => {  // 🔥 CORREGIDO: objeto con valor por defecto
+export const useProfessors = ({ enableList = true } = {}) => {
   const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [search, setSearch] = useState('');
 
-  // Listar todos (solo se ejecuta si enableList es true)
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: [QUERY_KEY],
-    queryFn: () => professorService.getAll(),
+    queryKey: [QUERY_KEY, page, limit, search],
+    queryFn: () => professorService.getAll({ page, limit, search }),
     retry: 1,
-    enabled: enableList,  // 🔥 Condición para ejecutar
+    enabled: enableList,
   });
 
   // Obtener uno por ID (para edición)
@@ -45,14 +48,28 @@ export const useProfessors = ({ enableList = true } = {}) => {  // 🔥 CORREGID
     },
   });
 
+  const activateMutation = useMutation({
+    mutationFn: (id) => professorService.activate(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries([QUERY_KEY]);
+    },
+  });
+
   return {
     data,
     isLoading,
     error,
     refetch,
+    page,
+    limit,
+    search,
+    setPage,
+    setLimit,
+    setSearch,
     useProfessorById,
     createProfessor: createMutation,
     updateProfessor: updateMutation,
     deleteProfessor: deleteMutation,
+    activateProfessor: activateMutation,
   };
 };

@@ -23,12 +23,18 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      window.location.href = '/';
+      redirectToLogin();
+    }
+    if (error.response?.status === 403) {
+      window.location.href = '/forbidden';
     }
     return Promise.reject(error);
   }
 );
 ```
+
+- **401** → redirige al login (sesión expirada/inválida)
+- **403** → redirige a `/forbidden` (rol incorrecto o sin permisos)
 
 ## 7.2 professorService (`services/professorService.js`)
 
@@ -118,10 +124,12 @@ export const useAuth = () => {
 };
 ```
 
+El `verifyAuth` retorna `{ authenticated, username, rol, idUsuario }`. El role check se hace en `AuthGate` (App.jsx), no dentro del hook.
+
 | Retorno | Tipo | Descripción |
 |---------|------|-------------|
-| `token` | `string\|null` | Token JWT (para flujo legacy) |
-| `user` | `object\|null` | Datos del usuario autenticado |
+| `token` | `string\|null` | Token JWT (para flujo legacy — no usado actualmente) |
+| `user` | `object\|null` | Datos del usuario: `{ authenticated, username, rol, idUsuario }` |
 | `setUser` | `Function` | Actualiza el usuario en el store |
 | `login` | `Function` | Login con token + user |
 | `logout` | `Function` | Limpia auth |

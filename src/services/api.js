@@ -10,11 +10,6 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('jwtToken');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
   if (config.data && ['post', 'put', 'patch'].includes(config.method)) {
     if (typeof config.data === 'object' && !(config.data instanceof FormData)) {
       config.data = sanitizeData(config.data);
@@ -29,6 +24,9 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       redirectToLogin();
+    }
+    if (error.response?.status === 403) {
+//      window.location.href = '/forbidden';
     }
     return Promise.reject(error);
   }

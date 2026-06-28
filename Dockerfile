@@ -1,5 +1,19 @@
 FROM node:18-alpine AS build
+
+
+# Crear usuario no-root
+RUN addgroup -g 1001 -S nodegroup && \
+    adduser -S nodeuser -G nodegroup -u 1001
+
 WORKDIR /app
+
+# Cambiar propietario
+COPY --chown=nodeuser:nodegroup . .
+
+USER nodeuser
+
+WORKDIR /app
+
 COPY package*.json ./
 RUN npm ci
 COPY . .

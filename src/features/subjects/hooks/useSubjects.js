@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import subjectService from '../../../services/subjectService';
 
@@ -5,10 +6,13 @@ const QUERY_KEY = 'subjects';
 
 export const useSubjects = ({ enableList = true } = {}) => {
   const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [search, setSearch] = useState('');
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: [QUERY_KEY],
-    queryFn: () => subjectService.getAll(),
+    queryKey: [QUERY_KEY, page, limit, search],
+    queryFn: () => subjectService.getAll({ page, limit, search }),
     retry: 1,
     enabled: enableList,
   });
@@ -43,14 +47,28 @@ export const useSubjects = ({ enableList = true } = {}) => {
     },
   });
 
+  const activateMutation = useMutation({
+    mutationFn: (id) => subjectService.activate(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries([QUERY_KEY]);
+    },
+  });
+
   return {
     data,
     isLoading,
     error,
     refetch,
+    page,
+    limit,
+    search,
+    setPage,
+    setLimit,
+    setSearch,
     useSubjectById,
     createSubject: createMutation,
     updateSubject: updateMutation,
     deleteSubject: deleteMutation,
+    activateSubject: activateMutation,
   };
 };
