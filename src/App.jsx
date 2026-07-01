@@ -88,7 +88,7 @@ function AuthGate() {
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.VITE_BASENAME || ''}>
       <Routes>
         <Route path="/forbidden" element={<ForbiddenPage />} />
         <Route path="/*" element={<AuthGate />} />

@@ -12,6 +12,8 @@ import GradoList from '../features/grados/GradoList';
 import TutorPage from '../features/tutor/TutorPage';
 import QuizzPage from '../features/quizz/QuizzPage';
 import GradoForm from '../features/grados/GradoForm';
+import NotFoundPage from '../pages/NotFoundPage';
+
 const AppRoutes = () => {
   return (
     <Routes>
@@ -32,7 +34,7 @@ const AppRoutes = () => {
       <Route path="/grados/:id" element={<GradoForm />} />
       <Route path="/tutor" element={<TutorPage />} />
       <Route path="/quizz" element={<QuizzPage />} />
-      <Route path="*" element={<Navigate to="/" />} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 };

@@ -1,6 +1,7 @@
-// src/utils/auth.js
+import { GATEWAY } from '../config';
+
 export const getLoginUrl = () => {
-  return import.meta.env.VITE_LOGIN_URL || `${import.meta.env.VITE_GATEWAY_URL || 'http://localhost:8085'}/login`;
+  return import.meta.env.VITE_LOGIN_URL || `${GATEWAY}/login`;
 };
 
 export const redirectToLogin = () => {

@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-
-const GATEWAY = import.meta.env.VITE_GATEWAY_URL || 'http://localhost:8085';
+import { GATEWAY } from '../config';
 
 const fetchStats = async () => {
   let token;

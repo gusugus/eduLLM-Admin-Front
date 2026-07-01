@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import LoadingScreen from '../../components/common/LoadingScreen';
-
-const GATEWAY = import.meta.env.VITE_GATEWAY_URL || 'http://localhost:8085';
+import { GATEWAY } from '../../config';
 
 export default function QuizzPage() {
   useEffect(() => {

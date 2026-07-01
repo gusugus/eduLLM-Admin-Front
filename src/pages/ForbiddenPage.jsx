@@ -4,8 +4,7 @@ import LockIcon from '@mui/icons-material/Lock';
 import axios from 'axios';
 import useAuthStore from '../stores/authStore';
 import { getLoginUrl } from '../utils/auth';
-
-const GATEWAY = import.meta.env.VITE_GATEWAY_URL || 'http://localhost:8085';
+import { GATEWAY } from '../config';
 
 const ForbiddenPage = () => {
   const logout = useAuthStore((s) => s.logout);
