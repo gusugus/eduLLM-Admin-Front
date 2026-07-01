@@ -65,7 +65,7 @@ const Sidebar = () => {
       </List>
 
       <div className="px-4 py-4 border-t border-slate-700/60">
-        <p className="text-xs text-slate-500">eduLLM Admin v1.0</p>
+        <p className="text-xs text-slate-500">EduQuiz Admin v1.0</p>
       </div>
     </div>
   );
