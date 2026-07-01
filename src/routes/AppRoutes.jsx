@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import DashboardCards from '../components/layout/DashboardCards';
+import DashboardPage from '../pages/DashboardPage';
 import ProfessorList from '../features/professors/ProfessorList';
 import ProfessorForm from '../features/professors/ProfessorForm';
 import StudentList from '../features/students/StudentList';
@@ -15,8 +15,8 @@ import GradoForm from '../features/grados/GradoForm';
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<DashboardCards />} />
-      <Route path="/dashboard" element={<DashboardCards />} />
+      <Route path="/" element={<DashboardPage />} />
+      <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/professors" element={<ProfessorList />} />
       <Route path="/professors/new" element={<ProfessorForm />} />
       <Route path="/professors/:id" element={<ProfessorForm />} />
