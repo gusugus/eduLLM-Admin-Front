@@ -23,6 +23,7 @@
     "react-router-dom": "^6.21.0",
     "validator": "^13.11.0",
     "zod": "^3.22.4",
+    "recharts": "^2.15.1",
     "zustand": "^4.4.7"
   },
   "devDependencies": {

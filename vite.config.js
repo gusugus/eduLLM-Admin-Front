@@ -8,5 +8,15 @@ export default defineConfig(({ command }) => ({
     port: 8001,
     host: true,
     allowedHosts: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8085',
+        changeOrigin: true,
+      },
+    },
+    watch: {
+      usePolling: true,
+      ignored: ['**/node_modules/**', '**/.git/**', '**/dist/**', '**/build/**', '**/docs/**', '**/public/**']
+    }
   },
 }));

@@ -9,6 +9,8 @@ import SubjectList from '../features/subjects/SubjectList';
 import SubjectForm from '../features/subjects/SubjectForm';
 import AssignmentsPage from '../features/assignments/AssignmentsPage';
 import GradoList from '../features/grados/GradoList';
+import PeriodoList from '../features/periodos/PeriodoList';
+import PeriodoForm from '../features/periodos/PeriodoForm';
 import TutorPage from '../features/tutor/TutorPage';
 import QuizzPage from '../features/quizz/QuizzPage';
 import GradoForm from '../features/grados/GradoForm';
@@ -32,6 +34,9 @@ const AppRoutes = () => {
       <Route path="/grados" element={<GradoList />} />
       <Route path="/grados/new" element={<GradoForm />} />
       <Route path="/grados/:id" element={<GradoForm />} />
+      <Route path="/periodos" element={<PeriodoList />} />
+      <Route path="/periodos/new" element={<PeriodoForm />} />
+      <Route path="/periodos/:id" element={<PeriodoForm />} />
       <Route path="/tutor" element={<TutorPage />} />
       <Route path="/quizz" element={<QuizzPage />} />
       <Route path="*" element={<NotFoundPage />} />
