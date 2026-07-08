@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import DashboardCards from '../components/layout/DashboardCards';
+import DashboardPage from '../pages/DashboardPage';
 import ProfessorList from '../features/professors/ProfessorList';
 import ProfessorForm from '../features/professors/ProfessorForm';
 import StudentList from '../features/students/StudentList';
@@ -9,14 +9,18 @@ import SubjectList from '../features/subjects/SubjectList';
 import SubjectForm from '../features/subjects/SubjectForm';
 import AssignmentsPage from '../features/assignments/AssignmentsPage';
 import GradoList from '../features/grados/GradoList';
+import PeriodoList from '../features/periodos/PeriodoList';
+import PeriodoForm from '../features/periodos/PeriodoForm';
 import TutorPage from '../features/tutor/TutorPage';
 import QuizzPage from '../features/quizz/QuizzPage';
 import GradoForm from '../features/grados/GradoForm';
+import NotFoundPage from '../pages/NotFoundPage';
+
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<DashboardCards />} />
-      <Route path="/dashboard" element={<DashboardCards />} />
+      <Route path="/" element={<DashboardPage />} />
+      <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/professors" element={<ProfessorList />} />
       <Route path="/professors/new" element={<ProfessorForm />} />
       <Route path="/professors/:id" element={<ProfessorForm />} />
@@ -30,9 +34,12 @@ const AppRoutes = () => {
       <Route path="/grados" element={<GradoList />} />
       <Route path="/grados/new" element={<GradoForm />} />
       <Route path="/grados/:id" element={<GradoForm />} />
+      <Route path="/periodos" element={<PeriodoList />} />
+      <Route path="/periodos/new" element={<PeriodoForm />} />
+      <Route path="/periodos/:id" element={<PeriodoForm />} />
       <Route path="/tutor" element={<TutorPage />} />
       <Route path="/quizz" element={<QuizzPage />} />
-      <Route path="*" element={<Navigate to="/" />} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 };

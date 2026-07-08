@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import axios from 'axios';
 import { useAuth } from '../../hooks/useAuth';
+import { GATEWAY } from '../../config';
 
 function LoginForm() {
   const [username, setUsername] = useState('');
@@ -12,14 +13,12 @@ function LoginForm() {
   const { enqueueSnackbar } = useSnackbar();
   const { setUser } = useAuth();
 
-  const GATEWAY_URL = import.meta.env.VITE_GATEWAY_URL || 'http://localhost:8085';
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const response = await axios.post(`${GATEWAY_URL}/api/auth/login`, {
+      const response = await axios.post(`${GATEWAY}/api/auth/login`, {
         username,
         password
       }, { withCredentials: true });
@@ -47,7 +46,7 @@ function LoginForm() {
                 d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">eduLLM Admin</h1>
+          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">EduQuiz <span className="text-blue-200 font-normal">Admin</span></h1>
           <p className="text-sm text-slate-500 mt-1">Panel de administración</p>
         </div>
 

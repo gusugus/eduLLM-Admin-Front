@@ -1,8 +1,7 @@
 import { useCallback } from 'react';
 import axios from 'axios';
 import useAuthStore from '../stores/authStore';
-
-const GATEWAY = import.meta.env.VITE_GATEWAY_URL || 'http://localhost:8085';
+import { GATEWAY } from '../config';
 
 export const useAuth = () => {
   const { user, setUser, logout } = useAuthStore();

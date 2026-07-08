@@ -118,7 +118,7 @@ const SubjectsForm = () => {
                       <MenuItem value="">
                         <em>Seleccione un curso</em>
                       </MenuItem>
-                      {(grados || []).map((g) => (
+                      {(grados?.data || []).map((g) => (
                         <MenuItem key={g.id} value={g.id}>
                           {g.nombre_completo}
                         </MenuItem>

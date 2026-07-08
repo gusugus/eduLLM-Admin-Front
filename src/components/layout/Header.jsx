@@ -4,8 +4,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import axios from 'axios';
 import { useAuth } from '../../hooks/useAuth';
-
-const GATEWAY = import.meta.env.VITE_GATEWAY_URL || 'http://localhost:8085';
+import { GATEWAY } from '../../config';
 
 const Header = () => {
   const { user, logout: clearSession } = useAuth();
@@ -37,7 +36,7 @@ const Header = () => {
           </svg>
         </div>
         <span className="text-white font-semibold text-base tracking-tight">
-          eduLLM <span className="text-blue-200 font-normal">Admin</span>
+          EduQuiz <span className="text-blue-200 font-normal">Admin</span>
         </span>
       </div>
 

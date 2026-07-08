@@ -1,10 +1,11 @@
 import React from 'react';
 import { List, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
-import { Dashboard, People, School, Book, Assignment, Layers } from '@mui/icons-material';
+import { Dashboard, People, School, Book, Assignment, Layers, CalendarMonth } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const menuItems = [
   { text: 'Dashboard',    icon: <Dashboard />,  path: '/' },
+  { text: 'Periodos',     icon: <CalendarMonth />, path: '/periodos' },
   { text: 'Profesores',   icon: <People />,      path: '/professors' },
   { text: 'Estudiantes',  icon: <School />,      path: '/students' },
   { text: 'Grados',       icon: <Layers />,      path: '/grados' },
@@ -65,7 +66,7 @@ const Sidebar = () => {
       </List>
 
       <div className="px-4 py-4 border-t border-slate-700/60">
-        <p className="text-xs text-slate-500">eduLLM Admin v1.0</p>
+        <p className="text-xs text-slate-500">EduQuiz Admin v1.0</p>
       </div>
     </div>
   );

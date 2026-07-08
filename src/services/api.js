@@ -1,8 +1,7 @@
 import axios from 'axios';
 import { sanitizeData } from '../utils/sanitize';
 import { redirectToLogin } from '../utils/auth';
-
-const GATEWAY = import.meta.env.VITE_GATEWAY_URL || 'http://localhost:8085';
+import { GATEWAY } from '../config';
 
 const api = axios.create({
   baseURL: `${GATEWAY}/api/admin`,
