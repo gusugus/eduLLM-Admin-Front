@@ -1,10 +1,11 @@
 import React from 'react';
 import { List, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
-import { Dashboard, People, School, Book, Assignment, Layers } from '@mui/icons-material';
+import { Dashboard, People, School, Book, Assignment, Layers, CalendarMonth } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const menuItems = [
   { text: 'Dashboard',    icon: <Dashboard />,  path: '/' },
+  { text: 'Periodos',     icon: <CalendarMonth />, path: '/periodos' },
   { text: 'Profesores',   icon: <People />,      path: '/professors' },
   { text: 'Estudiantes',  icon: <School />,      path: '/students' },
   { text: 'Grados',       icon: <Layers />,      path: '/grados' },

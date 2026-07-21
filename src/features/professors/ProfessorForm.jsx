@@ -44,15 +44,10 @@ const ProfessorForm = () => {
 
   // Cargar datos del profesor si es edición
   const { data: professorData, isLoading: isLoadingProfessor } = useProfessorById(isEdit ? id : null);
-  console.log(professorData);
-  //console.log(isEdit);
-  //console.log(professorData?.data);
-  // Resetear el formulario cuando los datos del profesor estén disponibles
+  // Resetea el formulario cuando los datos del profesor estén disponibles
   useEffect(() => {
-  if (isEdit && professorData) {  // <- Cambia professorData?.data a professorData
-    const prof = professorData;
-    console.log('Reseteando formulario con:', prof);
-    
+  if (isEdit && professorData) {
+    const prof = professorData;    
     reset({
       cedula: prof.cedula || '',
       primer_nombre: prof.primer_nombre || '',

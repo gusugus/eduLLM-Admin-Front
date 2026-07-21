@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import axios from 'axios';
 import { useAuth } from '../../hooks/useAuth';
+import { GATEWAY } from '../../config';
 
 function LoginForm() {
   const [username, setUsername] = useState('');
@@ -12,14 +13,12 @@ function LoginForm() {
   const { enqueueSnackbar } = useSnackbar();
   const { setUser } = useAuth();
 
-  const GATEWAY_URL = import.meta.env.VITE_GATEWAY_URL || 'http://localhost:8085';
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const response = await axios.post(`${GATEWAY_URL}/api/auth/login`, {
+      const response = await axios.post(`${GATEWAY}/api/auth/login`, {
         username,
         password
       }, { withCredentials: true });

@@ -150,8 +150,8 @@ const ProfileModal = ({ open, onClose, person, type = 'profesor' }) => {
                 </Grid>
                 <Grid item xs={12}>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {person.materias.map((mat) => (
-                      <Chip key={mat.id} label={mat.nombre} size="small" variant="outlined" color="primary" />
+                    {person.materias.map((mat, index) => (
+                      <Chip key={`${mat.nombre}-${index}`} label={mat.nombre} size="small" variant="outlined" color="primary" />
                     ))}
                   </Box>
                 </Grid>
