@@ -27,7 +27,8 @@ const AssignProfessorSubject = () => {
   const handleAssign = async () => {
     if (!id_profesor || !id_materia) return;
     try {
-      await assignProfessor.mutateAsync({ id_profesor, id_materia });
+      const response = await assignProfessor.mutateAsync({ id_profesor, id_materia });
+      enqueueSnackbar(response?.message || 'Profesor asignado a la materia exitosamente', { variant: 'success' });
       setIdProfesor('');
       setIdMateria('');
     } catch (e) {
